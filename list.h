@@ -45,7 +45,7 @@ int list_get_pos(const list *l, const list_node* item);
 list_node *list_find(const list *l, const void *e);
 //Find the first element in the list based on comparison function for more advanced checks
 //Returns NULL if nothing was found
-list_node *list_find_by(const list *l, const void *e, bool (*cmp)(const void *a, const void *b));
+list_node *list_find_with(const list *l, const void *e, int (*cmp)(const void *a, const void *b));
 
 /* Insert into list after specific node pointer */
 //Most efficient way to insert new items
@@ -70,21 +70,34 @@ static void list_pop_back(list *l) { list_pop(l, l->tail->prev); }
 /* Utility functions */
 //Reverses the list in place
 void list_rev(list *l);
-//Reverses the list in place
-static list *list_concat(list *l1, list* l2) {
-  list *new_l = list_new();
-  new_l->head = l1->head;
-  new_l->head->prev = new_l->tail = l2->tail;
-  new_l->tail->next = l1->head;
-}
+//Does a shallow copy of elements into a new list. Works well for simple types
+list *list_copy(const list *l);
+//Does a deep copy of elements into a new list. Allows you to specify how to deep copy
+list *list_copy_with(const list *l, void *(copy)(const void *e));
+//Concatenates 2 lists and returns a new list
+list *list_concat(list *l1, list* l2);
 
 /* Print functions. Prints format per node */
 //Prints the contents of the whole list
 void list_print(const list *l, const char *format);
+//Prints the contents of the whole list with a newline at the end
+static void list_println(const list *l, const char *format) {
+  list_print(l, format);
+  printf("\n");
+}
 //Prints the contents of the whole list between 2 nodes
 void list_print_between(const list *l, const list_node *i, const list_node *j, const char *format);
+//Prints the contents of the whole list between 2 nodes with a newline at the end
+static void list_println_between(const list *l, const list_node *i, const list_node *j, const char *format) {
+  list_print_between(l, i, j, format);
+  printf("\n");
+}
 //Prints the contents of the whole list between 2 indices
 void list_print_between_indices(const list *l, unsigned int i, unsigned int j, const char *format);
-
+//Prints the contents of the whole list between 2 indices with a newline at the end
+static void list_println_between_indices(const list *l, unsigned int i, unsigned int j, const char *format) {
+  list_print_between_indices(l, i, j, format);
+  printf("\n");
+}
 
 #endif

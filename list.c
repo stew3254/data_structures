@@ -10,6 +10,8 @@ list *list_new() {
   //Get 2 different pointers for checking later
   l->head = list_new_node(NULL);
   l->tail = list_new_node(NULL);
+  //Remember to initialize length
+  l->len = 0;
 
   //Set head to face tail and vice versa
   l->head->next = l->head->prev = l->tail;
@@ -27,7 +29,7 @@ void list_del(list *l, bool is_heap) {
     //Store pointer to next element
     temp_n = n->next;
     //Remove the element if it's on the heap
-    if (is_heap && (n != l->head || n != l->tail))
+    if (is_heap && n->e != NULL)
       free(n->e);
 
     //Delete n
@@ -82,10 +84,10 @@ list_node *list_find(const list *l, const void *e) {
 
 //Find the first element in the list based on comparison function for more advanced checks
 //Returns NULL if nothing was found
-list_node *list_find_by(const list *l, const void *e, bool (*cmp)(const void *a, const void *b)) {
+list_node *list_find_with(const list *l, const void *e, int (*cmp)(const void *a, const void *b)) {
   list_node *n;
   for (n = l->head; n != l->head; n = n->next) {
-    if (cmp(e, n->e))
+    if (cmp(e, n->e) == 0)
       return n;
   }
   return NULL;
@@ -139,6 +141,65 @@ void list_rev(list *l) {
   temp = l->tail;
   l->head = temp;
   l->tail = n;
+}
+
+//Does a shallow copy of elements into a new list. Works well for simple types
+list *list_copy(const list *l) {
+  list *new_l = list_new();
+  for (list_node *n = l->head->next; n != l->tail; n = n->next) {
+    list_push_back(new_l, n->e);
+  }
+  return new_l;
+}
+
+//Does a deep copy of elements into a new list. Allows you to specify how to deep copy
+list *list_copy_with(const list *l, void *(copy)(const void *e)) {
+  list *new_l = list_new();
+  for (list_node *n = l->head->next; n != l->tail; n = n->next) {
+    list_push_back(new_l, copy(n->e));
+  }
+  return new_l;
+}
+
+//Concatenates 2 lists and returns a new list
+list *list_concat(list *l1, list* l2) {
+  //If either list is empty, no need to concatenate. Just copy the other one
+  if (l1->len == 0)
+    return list_copy(l2);
+  if (l2->len == 0)
+    return list_copy(l1);
+
+  //Make a new list without the head and tail
+  list *new_l = (list*) malloc(sizeof(list));
+  //Copy the 2 lists since these will be consumed
+  list *new_l1 = list_copy(l1);
+  list *new_l2 = list_copy(l2);
+
+  /* Stitch all of the nodes together */
+  //Set the head
+  new_l->head = new_l1->head;
+  //Set the tail, but also the previous pointer on the head ot the right tail
+  new_l->head->prev = new_l->tail = new_l2->tail;
+  //Set the tail's next to the right head
+  new_l->tail->next = new_l->head;
+  //Fix the last element in list 1 to point to the first element of list 2
+  list_node *temp = new_l1->tail->prev;
+  new_l1->tail->prev->next = new_l2->head->next;
+  //Do the opposite
+  new_l2->head->next->prev = temp;
+
+
+  //Capture the new length
+  new_l->len = l1->len + l2->len;
+
+  //Free the unused nodes in the now consumed lists
+  free(new_l1->tail);
+  free(new_l2->head);
+  //Free the consumed lists
+  free(new_l1);
+  free(new_l2);
+
+  return new_l;
 }
 
 //Print the contents of a list for debugging
