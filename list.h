@@ -20,8 +20,14 @@ void list_insert(list *l, list_node *item, void *e);
 void *list_pop(list *l, list_node *item);
 
 list_node *list_get_at(const list *l, unsigned int index);
+
+void list_rev(list *l);
 void list_print(const list *l, const char *format);
 void list_print_between(const list *l, unsigned int i, unsigned int j, const char *format);
+
+static void list_insert_at(list *l, unsigned int i, void *e) {
+  list_insert(l, list_get_at(l, i), e);
+}
 
 static void list_push_front(list *l, void *e) { list_insert(l, l->head, e); }
 static void list_push_back(list *l, void *e) { list_insert(l, l->tail, e); }
