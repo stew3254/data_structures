@@ -37,7 +37,15 @@ static list_node *list_new_node(void *e) {
 //but is used in insert_at and pop_at
 list_node *list_get_at(const list *l, unsigned int index);
 //Find position of node in the list
-int list_find_at(const list *l, const list_node* item);
+int list_get_pos(const list *l, const list_node* item);
+
+/* Simple searching functions */
+//Find the first element in the list where simple comparison works
+//Returns NULL if nothing was found
+list_node *list_find(const list *l, const void *e);
+//Find the first element in the list based on comparison function for more advanced checks
+//Returns NULL if nothing was found
+list_node *list_find_by(const list *l, const void *e, bool (*cmp)(const void *a, const void *b));
 
 /* Insert into list after specific node pointer */
 //Most efficient way to insert new items
@@ -62,6 +70,14 @@ static void list_pop_back(list *l) { list_pop(l, l->tail->prev); }
 /* Utility functions */
 //Reverses the list in place
 void list_rev(list *l);
+//Reverses the list in place
+static list *list_concat(list *l1, list* l2) {
+  list *new_l = list_new();
+  new_l->head = l1->head;
+  new_l->head->prev = new_l->tail = l2->tail;
+  new_l->tail->next = l1->head;
+}
+
 /* Print functions. Prints format per node */
 //Prints the contents of the whole list
 void list_print(const list *l, const char *format);

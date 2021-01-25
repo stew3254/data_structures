@@ -27,7 +27,7 @@ void list_del(list *l, bool is_heap) {
     //Store pointer to next element
     temp_n = n->next;
     //Remove the element if it's on the heap
-    if (is_heap)
+    if (is_heap && (n != l->head || n != l->tail))
       free(n->e);
 
     //Delete n
@@ -63,11 +63,32 @@ list_node *list_get_at(const list *l, const unsigned int index) {
 }
 
 //Find position of node in the list
-int list_find_at(const list *l, const list_node* item) {
+int list_get_at_pos(const list *l, const list_node* item) {
   int pos = 0;
   for (list_node *n = l->head; n != item; n = n->next)
     ++pos;
   return pos;
+}
+
+//Find the first element in the list where simple comparison works
+//Returns NULL if nothing was found
+list_node *list_find(const list *l, const void *e) {
+  list_node *n;
+  for (n = l->head; n->e != e || n != l->head; n = n->next);
+  if (n == l->head)
+    return NULL;
+  return n;
+}
+
+//Find the first element in the list based on comparison function for more advanced checks
+//Returns NULL if nothing was found
+list_node *list_find_by(const list *l, const void *e, bool (*cmp)(const void *a, const void *b)) {
+  list_node *n;
+  for (n = l->head; n != l->head; n = n->next) {
+    if (cmp(e, n->e))
+      return n;
+  }
+  return NULL;
 }
 
 //Insert element after item
