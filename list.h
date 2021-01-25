@@ -70,12 +70,20 @@ static void list_pop_back(list *l) { list_pop(l, l->tail->prev); }
 /* Utility functions */
 //Reverses the list in place
 void list_rev(list *l);
-//Does a shallow copy of elements into a new list. Works well for simple types
-list *list_copy(const list *l);
+
+//Simply return the element passed in.
+//Allows to be used in the simple copy function without duplicated code
+static void *simple_copy(const void *e) { return e; }
+
 //Does a deep copy of elements into a new list. Allows you to specify how to deep copy
 list *list_copy_with(const list *l, void *(copy)(const void *e));
+//Does a shallow copy of elements into a new list. Works well for simple types
+static list *list_copy(const list *l) { return list_copy_with(l, simple_copy); }
+
+//Concatenates 2 lists with copy function and returns a new list
+list *list_concat_with(list *l1, list* l2, void *(copy)(const void *e));
 //Concatenates 2 lists and returns a new list
-list *list_concat(list *l1, list* l2);
+static list *list_concat(list *l1, list* l2) { return list_concat_with(l1, l2, simple_copy); }
 
 /* Print functions. Prints format per node */
 //Prints the contents of the whole list

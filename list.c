@@ -143,15 +143,6 @@ void list_rev(list *l) {
   l->tail = n;
 }
 
-//Does a shallow copy of elements into a new list. Works well for simple types
-list *list_copy(const list *l) {
-  list *new_l = list_new();
-  for (list_node *n = l->head->next; n != l->tail; n = n->next) {
-    list_push_back(new_l, n->e);
-  }
-  return new_l;
-}
-
 //Does a deep copy of elements into a new list. Allows you to specify how to deep copy
 list *list_copy_with(const list *l, void *(copy)(const void *e)) {
   list *new_l = list_new();
@@ -161,19 +152,19 @@ list *list_copy_with(const list *l, void *(copy)(const void *e)) {
   return new_l;
 }
 
-//Concatenates 2 lists and returns a new list
-list *list_concat(list *l1, list* l2) {
+//Concatenates 2 lists with copy function and returns a new list
+list *list_concat_with(list *l1, list* l2, void *(copy)(const void *e)) {
   //If either list is empty, no need to concatenate. Just copy the other one
   if (l1->len == 0)
-    return list_copy(l2);
+    return list_copy_with(l2, copy);
   if (l2->len == 0)
-    return list_copy(l1);
+    return list_copy_with(l1, copy);
 
   //Make a new list without the head and tail
   list *new_l = (list*) malloc(sizeof(list));
   //Copy the 2 lists since these will be consumed
-  list *new_l1 = list_copy(l1);
-  list *new_l2 = list_copy(l2);
+  list *new_l1 = list_copy_with(l1, copy);
+  list *new_l2 = list_copy_with(l2, copy);
 
   /* Stitch all of the nodes together */
   //Set the head
