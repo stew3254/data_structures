@@ -11,19 +11,25 @@ list *list_new() {
   l->head = list_new_node(NULL);
   l->tail = list_new_node(NULL);
 
+  //Set head to face tail and vice versa
   l->head->next = l->head->prev = l->tail;
   l->tail->next = l->tail->prev = l->head;
   return l;
 }
 
 //Delete an existing list
-void list_del(list *l) {
+void list_del(list *l, bool is_heap) {
+  //Save the start pointer
   list_node *start = l->head;
   list_node *n = l->head;
   list_node *temp_n = n;
   do {
     //Store pointer to next element
     temp_n = n->next;
+    //Remove the element if it's on the heap
+    if (is_heap)
+      free(n->e);
+
     //Delete n
     free(n);
     //Set it to the next pointer
@@ -32,29 +38,14 @@ void list_del(list *l) {
   free(l);
 }
 
-//Create a new node to add to the list
-list_node *list_new_node(void *e) {
-  list_node *node_ptr = (list_node*) malloc(sizeof(list_node));
-  node_ptr->prev = node_ptr->next = node_ptr;
-  node_ptr->e = e;
-  return node_ptr;
-}
-
-//Print the contents of a list for debugging
-void list_print(const list *l, const char *format) {
-  for (list_node *n = l->head->next; n->next != l->head; n = n->next) {
-    printf(format, n->e);
-  }
-}
-
 list_node *list_get_at(const list *l, const unsigned int index) {
-  if (index >= l->size) {
+  if (index >= l->len) {
     return NULL;
   }
   list_node *n;
 
   bool isForward = true;
-  if (l->size/2 - index < 0)
+  if (l->len / 2 - index < 0)
     isForward = false;
 
   if (isForward) {
@@ -71,19 +62,12 @@ list_node *list_get_at(const list *l, const unsigned int index) {
   return n;
 }
 
-//Print the contents of a list for debugging
-void list_print_between(const list *l, unsigned int i, unsigned int j, const char *format) {
-  //Flips signs if they are backwards
-  if (i > j) {
-    list_print_between(l, j, i, format);
-  }
-
-  list_node *n = list_get_at(l, i);
-  while(i != j) {
-    printf(format, n->e);
-    n = n->next;
-    ++i;
-  }
+//Find position of node in the list
+int list_find_at(const list *l, const list_node* item) {
+  int pos = 0;
+  for (list_node *n = l->head; n != item; n = n->next)
+    ++pos;
+  return pos;
 }
 
 //Insert element after item
@@ -101,8 +85,8 @@ void list_insert(list *l, list_node *item, void *e) {
   //Set the forward pointer of item and back pointer of the item after the new node to the new node
   item->next = new_node->next->prev = new_node;
 
-  //Bump up size
-  ++l->size;
+  //Bump up len
+  ++l->len;
 }
 
 //Pop item
@@ -112,10 +96,11 @@ void *list_pop(list *l, list_node *item) {
   item->prev->next = item->next;
   item->next->prev = item->prev;
   free(item);
-  --l->size;
+  --l->len;
   return e;
 }
 
+//Reverses the list in place
 void list_rev(list *l) {
   list_node *n = l->head;
   list_node *temp;
@@ -133,4 +118,39 @@ void list_rev(list *l) {
   temp = l->tail;
   l->head = temp;
   l->tail = n;
+}
+
+//Print the contents of a list for debugging
+void list_print(const list *l, const char *format) {
+  for (list_node *n = l->head->next; n->next != l->head; n = n->next) {
+    printf(format, n->e);
+  }
+}
+
+//Print the contents of a list between nodes for debugging
+void list_print_between(const list *l, const list_node *i, const list_node *j, const char *format) {
+  //Does not flip nodes if they are backwards unlike other function
+  list_node *n = i;
+  while(n != j) {
+    //Print the format per node
+    printf(format, n->e);
+    n = n->next;
+  }
+}
+
+//Print the contents of a list between indices for debugging
+void list_print_between_indices(const list *l, unsigned int i, unsigned int j, const char *format) {
+  //Flips signs if they are backwards
+  if (i > j) {
+    list_print_between_indices(l, j, i, format);
+  }
+
+  //Get the location of the node
+  list_node *n = list_get_at(l, i);
+  while(i != j) {
+    //Print the format per node
+    printf(format, n->e);
+    n = n->next;
+    ++i;
+  }
 }
