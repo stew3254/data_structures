@@ -1,13 +1,15 @@
 #ifndef list_h
 #define list_h
 
+#include "simple_functions.h"
+
 typedef struct ListNode {
   void *e;
   struct ListNode *next;
   struct ListNode *prev;
 } list_node;
 
-typedef struct List {
+typedef struct Vector {
   list_node *head;
   list_node *tail;
   unsigned int len;
@@ -40,12 +42,12 @@ list_node *list_get_at(const list *l, unsigned int index);
 int list_get_pos(const list *l, const list_node* item);
 
 /* Simple searching functions */
-//Find the first element in the list where simple comparison works
-//Returns NULL if nothing was found
-list_node *list_find(const list *l, const void *e);
 //Find the first element in the list based on comparison function for more advanced checks
 //Returns NULL if nothing was found
 list_node *list_find_with(const list *l, const void *e, int (*cmp)(const void *a, const void *b));
+//Find the first element in the list where simple comparison works
+//Returns NULL if nothing was found
+static list_node *list_find(const list *l, const void *e) { return list_find_with(l, e, simple_cmp); }
 
 /* Insert into list after specific node pointer */
 //Most efficient way to insert new items
@@ -70,10 +72,6 @@ static void list_pop_back(list *l) { list_pop(l, l->tail->prev); }
 /* Utility functions */
 //Reverses the list in place
 void list_rev(list *l);
-
-//Simply return the element passed in.
-//Allows to be used in the simple copy function without duplicated code
-static void *simple_copy(const void *e) { return e; }
 
 //Does a deep copy of elements into a new list. Allows you to specify how to deep copy
 list *list_copy_with(const list *l, void *(copy)(const void *e));

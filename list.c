@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdbool.h>
 #include "list.h"
 
@@ -70,16 +69,6 @@ int list_get_at_pos(const list *l, const list_node* item) {
   for (list_node *n = l->head; n != item; n = n->next)
     ++pos;
   return pos;
-}
-
-//Find the first element in the list where simple comparison works
-//Returns NULL if nothing was found
-list_node *list_find(const list *l, const void *e) {
-  list_node *n;
-  for (n = l->head; n->e != e || n != l->head; n = n->next);
-  if (n == l->head)
-    return NULL;
-  return n;
 }
 
 //Find the first element in the list based on comparison function for more advanced checks
