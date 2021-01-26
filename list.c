@@ -46,7 +46,7 @@ list_node *list_get_at(const list *l, const unsigned int index) {
   list_node *n;
 
   bool isForward = true;
-  if (l->len / 2 - index < 0)
+  if (l->len/2 - index <= 0)
     isForward = false;
 
   if (isForward) {
