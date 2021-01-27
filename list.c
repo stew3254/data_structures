@@ -113,7 +113,7 @@ void *list_pop(list *l, list_node *item) {
 }
 
 //Reverses the list in place
-void list_rev(list *l) {
+list *list_rev(list *l) {
   list_node *n = l->head;
   list_node *temp;
 
@@ -130,6 +130,7 @@ void list_rev(list *l) {
   temp = l->tail;
   l->head = temp;
   l->tail = n;
+  return l;
 }
 
 //Does a deep copy of elements into a new list. Allows you to specify how to deep copy

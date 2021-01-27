@@ -20,11 +20,11 @@ static int simple_cmp(const void *a, const void *b) {
     return -1;
 }
 
-//Cursed swap function. Only works on things of exactly sizeof(long) == ptr
+//Generic swap function
 static void swap_ptr(void **a, void **b) {
-  *a = (void *) ((ptrdiff_t) (*a) ^ (ptrdiff_t) (*b));
-  *b = (void *) ((ptrdiff_t) (*a) ^ (ptrdiff_t) (*b));
-  *a = (void *) ((ptrdiff_t) (*a) ^ (ptrdiff_t) (*b));
+  void *temp = *a;
+  *a = *b;
+  *b = temp;
 }
 
 #endif

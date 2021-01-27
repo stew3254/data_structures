@@ -76,7 +76,7 @@ static inline void *list_pop_back(list *l) { return list_pop(l, l->tail->prev); 
 
 /* Utility functions */
 //Reverses the list in place
-void list_rev(list *l);
+list *list_rev(list *l);
 
 //Does a deep copy of elements into a new list. Allows you to specify how to deep copy
 list *list_copy_with(const list *l, void *(copy)(const void *e));

@@ -1,14 +1,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include "vec.h"
 
 //Initialize a new empty vec
-vec *vec_new(size_t size) {
+vec *vec_with_cap(unsigned int capacity) {
   vec *v = (vec *) malloc(sizeof(vec));
-  v->cap = 32;
+  v->cap = capacity;
   v->len = 0;
-  v->data = calloc(v->cap + 1, size);
+  v->data = calloc(v->cap + 1, sizeof(ptrdiff_t));
   return v;
 }
 
@@ -26,10 +27,10 @@ void vec_del(vec *v, bool is_heap) {
 }
 
 //Grow the vec by the capacity specified. Returns -1 if it failed
-int vec_grow(vec *v, size_t capacity) {
+int vec_grow(vec *v, unsigned int capacity) {
   v->cap += capacity;
   void **p;
-  if ((p = realloc(v->data, v->cap+1)) == NULL) {
+  if ((p = realloc(v->data, (sizeof(ptrdiff_t) * v->cap)+1)) == NULL) {
     v->cap -= capacity;
     return -1;
   }
@@ -41,12 +42,12 @@ int vec_grow(vec *v, size_t capacity) {
 }
 
 //Shrink the vec by the capacity specified. Returns -1 if it failed
-int vec_shrink(vec *v, size_t capacity) {
+int vec_shrink(vec *v, unsigned int capacity) {
   //Set capacity to no smaller than the length
   v->cap = (v->cap - capacity < v->len) ? v->len : v->cap - capacity;
 
   void **p;
-  if ((p = realloc(v->data, v->cap+1)) == NULL) {
+  if ((p = realloc(v->data, (sizeof(ptrdiff_t) * v->cap)+1)) == NULL) {
     v->cap += capacity;
     return -1;
   }
@@ -59,13 +60,13 @@ int vec_shrink(vec *v, size_t capacity) {
 }
 
 //Set the capacity. Will not be smaller than the current length
-int vec_set_cap(vec *v, size_t capacity) {
-  size_t prev_cap = v->cap;
+int vec_set_cap(vec *v, unsigned int capacity) {
+  unsigned int prev_cap = v->cap;
   //Set capacity to no smaller than the length
   v->cap = (capacity < v->len) ? v->len : capacity;
 
   void **p;
-  if ((p = realloc(v->data, v->cap+1)) == NULL) {
+  if ((p = realloc(v->data, (sizeof(ptrdiff_t) * v->cap)+1)) == NULL) {
     v->cap = prev_cap;
     return -1;
   }
@@ -110,75 +111,57 @@ int vec_insert(vec *v, const unsigned int index, void *e) {
   return 0;
 }
 
-////Reverses the vec in place
-//void vec_rev(vec *l) {
-//  vec_node *n = l->head;
-//  vec_node *temp;
-//
-//  do {
-//    //Move forward in the vec
-//    temp = n->next;
-//    //Flip the pointers
-//    n->next = n->prev;
-//    n->prev = temp;
-//    //Continue to move forward
-//    n = temp;
-//  } while (n != l->head);
-//  //Since the head and tail got reversed, change their order in the vec
-//  temp = l->tail;
-//  l->head = temp;
-//  l->tail = n;
-//}
-//
-////Does a deep copy of elements into a new vec. Allows you to specify how to deep copy
-//vec *vec_copy_with(const vec *l, void *(copy)(const void *e)) {
-//  vec *new_l = vec_new();
-//  for (vec_node *n = l->head->next; n != l->tail; n = n->next) {
-//    vec_push_back(new_l, copy(n->e));
-//  }
-//  return new_l;
-//}
-//
-////Concatenates 2 vecs with copy function and returns a new vec
-//vec *vec_concat_with(vec *l1, vec* l2, void *(copy)(const void *e)) {
-//  //If either vec is empty, no need to concatenate. Just copy the other one
-//  if (l1->len == 0)
-//    return vec_copy_with(l2, copy);
-//  if (l2->len == 0)
-//    return vec_copy_with(l1, copy);
-//
-//  //Make a new vec without the head and tail
-//  vec *new_l = (vec*) malloc(sizeof(vec));
-//  //Copy the 2 vecs since these will be consumed
-//  vec *new_l1 = vec_copy_with(l1, copy);
-//  vec *new_l2 = vec_copy_with(l2, copy);
-//
-//  /* Stitch all of the nodes together */
-//  //Set the head
-//  new_l->head = new_l1->head;
-//  //Set the tail, but also the previous pointer on the head ot the right tail
-//  new_l->head->prev = new_l->tail = new_l2->tail;
-//  //Set the tail's next to the right head
-//  new_l->tail->next = new_l->head;
-//  //Fix the last element in vec 1 to point to the first element of vec 2
-//  vec_node *temp = new_l1->tail->prev;
-//  new_l1->tail->prev->next = new_l2->head->next;
-//  //Do the opposite
-//  new_l2->head->next->prev = temp;
-//
-//
-//  //Capture the new length
-//  new_l->len = l1->len + l2->len;
-//
-//  //Free the unused nodes in the now consumed vecs
-//  free(new_l1->tail);
-//  free(new_l2->head);
-//  //Free the consumed vecs
-//  free(new_l1);
-//  free(new_l2);
-//
-//  return new_l;
-//}
+//Reverses the vec in place
+vec *vec_rev(vec *v) {
+  unsigned int i = 0;
+  unsigned int j = v->len-1;
+  while (i < j) {
+    swap_ptr(v->data+(i++), v->data+(j--));
+  }
+  return v;
+}
+
+//Does a deep copy of elements into a new vec. Allows you to specify how to deep copy
+vec *vec_copy_with(const vec *v, void *(copy)(const void *e)) {
+  vec *new_v = vec_with_cap(v->cap);
+  for (unsigned int i = 0; i < v->len; ++i) {
+    vec_push_back(new_v, copy(v->data[i]));
+  }
+  return new_v;
+}
+
+//Concatenates 2 vecs with copy function and returns a new vec
+//Must be of the same type if you want this to work correctly
+vec *vec_concat_with(vec *v1, vec* v2, void *(copy)(const void *e)) {
+  //If either vec is empty, no need to concatenate. Just copy the other one
+  if (v1->len == 0)
+    return vec_copy_with(v2, copy);
+  if (v2->len == 0)
+    return vec_copy_with(v1, copy);
+
+  //Make a new capacity that is a power of 2 larger than the length of the 2 vecs added together
+  int cap = 1;
+  while(cap < v1->len + v2->len)
+    cap <<= 1;
+
+  //Make a new vec
+  vec *new_v = vec_with_cap(cap);
+
+  //Copy the items over from v1
+  for (unsigned int i = 0; i < v1->len; ++i) {
+    new_v->data[i] = copy(v1->data[i]);
+  }
+
+  //Copy the items over from v2
+  for (unsigned int i = 0; i < v2->len; ++i) {
+    new_v->data[i+v1->len] = copy(v2->data[i]);
+  }
+
+  //Capture the new length
+  new_v->len = v1->len + v2->len;
+
+  return new_v;
+}
 
 //Print the contents of a vec for debugging
 void vec_print(const vec *v, const char *format) {
@@ -188,7 +171,7 @@ void vec_print(const vec *v, const char *format) {
 }
 
 //Print the contents of a vec between nodes for debugging
-void vec_print_between(const vec *v, const vec_node *i, const vec_node *j, const char *format) {
+void vec_print_between(const vec *v, unsigned int i, unsigned int j, const char *format) {
   //Does not flip nodes if they are backwards unlike other function
   for (int idx = i; idx < j; ++idx)
     printf(format, v->data[i]);

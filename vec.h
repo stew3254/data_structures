@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 #include "simple_functions.h"
 
 typedef struct Vec {
@@ -11,8 +12,11 @@ typedef struct Vec {
     unsigned int len;
 } vec;
 
+/* Create a vec with capacity */
+vec *vec_with_cap(unsigned int capacity);
+
 /* Create a vec of correct data type size */
-vec *vec_new(size_t size);
+static inline vec *vec_new() { return vec_with_cap(32); }
 
 /* Destroy a vec and all elements inside */
 //Not exactly meant to be called directly, main logic behind destroying the vec
@@ -24,11 +28,11 @@ static inline void vec_del_heap(vec *v) { vec_del(v, true); }
 
 /* Capacity Management */
 //Grow the vec by the capacity specified. Returns -1 if it failed
-int vec_grow(vec *v, size_t capacity);
+int vec_grow(vec *v, unsigned int capacity);
 //Shrink the vec by the capacity specified or to the current length. Returns -1 if it failed
-int vec_shrink(vec *v, size_t capacity);
+int vec_shrink(vec *v, unsigned int capacity);
 //Set the capacity. Will not be smaller than the current length
-int vec_set_cap(vec *v, size_t capacity);
+int vec_set_cap(vec *v, unsigned int capacity);
 
 /* Finding nodes / positions */
 //Get a node at a specific index position
@@ -54,19 +58,26 @@ static inline void *vec_pop(vec *v, unsigned int index) {}
 //Remove something to the end of the vec
 static inline void *vec_pop_back(vec *v) {  return v->data[--(v->len)]; }
 
-///* Utility functions */
-////Reverses the vec in place
-//void vec_rev(vec *v);
-//
-////Does a deep copy of elements into a new vec. Allows you to specify how to deep copy
-//vec *vec_copy_with(const vec *v, void *(copy)(const void *e));
-////Does a shallow copy of elements into a new vec. Works well for simple types
-//static inline vec *vec_copy(const vec *v) { return vec_copy_with(v, simple_copy); }
-//
-////Concatenates 2 vecs with copy function and returns a new vec
-//vec *vec_concat_with(vec *v1, vec* v2, void *(copy)(const void *e));
-////Concatenates 2 vecs and returns a new vec
-//static inline vec *vec_concat(vec *v1, vec* v2) { return vec_concat_with(v1, v2, simple_copy); }
+/* Utility functions */
+//Reverses the vec in place
+vec *vec_rev(vec *v);
+
+//Does a deep copy of elements into a new vec. Allows you to specify how to deep copy
+vec *vec_copy_with(const vec *v, void *(copy)(const void *e));
+//Does a shallow copy of elements into a new vec. Works well for simple types
+static inline vec *vec_copy(const vec *v) {
+  vec *new_v = vec_with_cap(v->cap);
+  memcpy(new_v->data, v->data, sizeof(ptrdiff_t) * v->len);
+  new_v->len = v->len;
+  return new_v;
+}
+
+//Concatenates 2 vecs with copy function and returns a new vec
+//Must be of the same type if you want this to work correctly
+vec *vec_concat_with(vec *v1, vec* v2, void *(copy)(const void *e));
+//Concatenates 2 vecs and returns a new vec
+//Must be of the same type if you want this to work correctly
+static inline vec *vec_concat(vec *v1, vec* v2) { return vec_concat_with(v1, v2, simple_copy); }
 
 /* Print functions. Prints format per node */
 //Prints the contents of the whole vec
