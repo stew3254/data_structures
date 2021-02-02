@@ -55,7 +55,7 @@ list_node *list_find_with(const list *l, const void *e, int (*cmp)(const void *a
 static inline list_node *list_find(const list *l, const void *e) { return list_find_with(l, e, simple_cmp); }
 
 /* Insert into list after specific node pointer */
-//Most efficient way to insert new items
+//Most efficient way to tree_insert_from new items
 void list_insert(list *l, list_node *item, void *e);
 //Insert into list at certain position, not very efficient
 static inline void list_insert_at(list *l, unsigned int i, void *e) { list_insert(l, list_get_at(l, i), e); }

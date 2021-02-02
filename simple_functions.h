@@ -27,4 +27,9 @@ static void swap_ptr(void **a, void **b) {
   *b = temp;
 }
 
+//Max
+static inline void *max(void *a, void *b) { return (a > b) ? a : b; }
+//Min
+static inline void *min(void *a, void *b) { return (a > b) ? b : a; }
+
 #endif

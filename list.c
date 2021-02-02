@@ -115,21 +115,18 @@ void *list_pop(list *l, list_node *item) {
 //Reverses the list in place
 list *list_rev(list *l) {
   list_node *n = l->head;
-  list_node *temp;
+  list_node *next;
 
   do {
     //Move forward in the list
-    temp = n->next;
+    next = n->next;
     //Flip the pointers
-    n->next = n->prev;
-    n->prev = temp;
+    swap_ptr((void **) &n->next, (void **) &n->prev);
     //Continue to move forward
-    n = temp;
+    n = next;
   } while (n != l->head);
   //Since the head and tail got reversed, change their order in the list
-  temp = l->tail;
-  l->head = temp;
-  l->tail = n;
+  swap_ptr((void **) &l->head, (void **) &l->tail);
   return l;
 }
 
