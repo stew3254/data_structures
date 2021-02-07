@@ -27,6 +27,8 @@ static inline void vec_del_stack(vec *v) { vec_del(v, false); }
 static inline void vec_del_heap(vec *v) { vec_del(v, true); }
 
 /* Capacity Management */
+//Grow the array by the capacity specified. Returns -1 if it failed
+void *vec_grow_array(void *a, size_t size, unsigned int *capacity, unsigned int len);
 //Grow the vec by the capacity specified. Returns -1 if it failed
 int vec_grow(vec *v, unsigned int capacity);
 //Shrink the vec by the capacity specified or to the current length. Returns -1 if it failed

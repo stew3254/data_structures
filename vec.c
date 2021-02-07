@@ -26,6 +26,22 @@ void vec_del(vec *v, bool is_heap) {
   free(v);
 }
 
+//Grow the array to the specified size and zero out the extra spaces
+void *vec_grow_array(void *a, size_t size, unsigned int *capacity, unsigned int len) {
+  // Grow capacity
+  while (*capacity <= len) {
+    if (*capacity == 0)
+      *capacity = 1;
+    else
+      *capacity *= 2;
+  }
+  a = realloc(a, (size * *capacity)+1);
+  //Make sure to set the last value to 0
+  memset(a, *capacity-len+1, size);
+  //Assign the new array
+  return a;
+}
+
 //Grow the vec by the capacity specified. Returns -1 if it failed
 int vec_grow(vec *v, unsigned int capacity) {
   v->cap += capacity;
