@@ -11,7 +11,7 @@ typedef struct TreeNode {
   unsigned int height;
 } tree_node;
 
-typedef struct WAVLTree {
+typedef struct AVLTree {
   tree_node *root;
   unsigned int height;
 } tree;

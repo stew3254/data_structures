@@ -22,8 +22,8 @@ void tree_free_subnodes(tree_node *n, bool is_heap) {
   //Clean up current node
   if (is_heap) {
     free(n->e);
-    free(n);
   }
+  free(n);
 }
 
 // Find the maximum value in the tree
@@ -103,7 +103,7 @@ tree_node* tree_insert_from(tree *t, tree_node* node, void *e) {
 
   /* 1.  Perform the normal BST insertion */
   if (node == NULL)
-    return(tree_new_node(e));
+    return tree_new_node(e);
 
   //Insert left in the tree
   if (e < node->e)
