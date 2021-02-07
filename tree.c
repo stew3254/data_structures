@@ -2,14 +2,14 @@
  * NOTE: Much of this code was taking from geeksforgeeks.org and then
  * adapted to fit my paradigm. I do not take credit for this algorithm's
  * implementation, only for the structuring of the functions. The only thing
- * I wrote myself thus far is the BFS style tree print
+ * I wrote myself thus far is the BFS style avl_tree print
  */
 #include <stdio.h>
 #include "simple_functions.h"
 #include "tree.h"
 
-//Used to free nodes in a tree
-void tree_free_subnodes(tree_node *n, bool is_heap) {
+//Used to free nodes in a avl_tree
+void tree_free_subnodes(avl_tree_node *n, bool is_heap) {
   //Free left hand side
   if (n->left != NULL) {
     tree_free_subnodes(n->left, is_heap);
@@ -26,9 +26,9 @@ void tree_free_subnodes(tree_node *n, bool is_heap) {
   free(n);
 }
 
-// Find the maximum value in the tree
-void *tree_max_from(tree_node *node) {
-  tree_node* current = node;
+// Find the maximum value in the avl_tree
+void *tree_max_from(avl_tree_node *node) {
+  avl_tree_node* current = node;
 
   /* loop down to find the leftmost leaf */
   while (current->right != NULL)
@@ -37,9 +37,9 @@ void *tree_max_from(tree_node *node) {
   return current->e;
 }
 
-// Find the minimum value in the tree
-void *tree_min_from(tree_node *node) {
-  tree_node* current = node;
+// Find the minimum value in the avl_tree
+void *tree_min_from(avl_tree_node *node) {
+  avl_tree_node* current = node;
 
   /* loop down to find the leftmost leaf */
   while (current->left != NULL)
@@ -49,7 +49,7 @@ void *tree_min_from(tree_node *node) {
 }
 
 // Get Balance factor of node n
-int tree_get_node_balance(tree_node *n) {
+int tree_get_node_balance(avl_tree_node *n) {
   if (n == NULL)
     return 0;
   return (int) tree_node_height(n->right) - (int) tree_node_height(n->left);
@@ -58,9 +58,9 @@ int tree_get_node_balance(tree_node *n) {
 
 // A utility function to left rotate subtree rooted with r
 // See the diagram given above.
-tree_node *tree_left_rotate(tree *t, tree_node *r) {
-  tree_node *x = r->right;
-  tree_node *y = x->left;
+avl_tree_node *tree_left_rotate(avl_tree *t, avl_tree_node *r) {
+  avl_tree_node *x = r->right;
+  avl_tree_node *y = x->left;
 
   // Perform rotation
   x->left = r;
@@ -77,9 +77,9 @@ tree_node *tree_left_rotate(tree *t, tree_node *r) {
 
 // A utility function to right rotate subtree rooted with y
 // See the diagram given above.
-tree_node *tree_right_rotate(tree *t, tree_node *r) {
-  tree_node *x = r->left;
-  tree_node *y = x->right;
+avl_tree_node *tree_right_rotate(avl_tree *t, avl_tree_node *r) {
+  avl_tree_node *x = r->left;
+  avl_tree_node *y = x->right;
 
   // Perform rotation
   x->right = r;
@@ -96,16 +96,16 @@ tree_node *tree_right_rotate(tree *t, tree_node *r) {
 
 // Recursive function to tree_insert_from a key in the subtree rooted
 // with node and returns the new root of the subtree.
-tree_node* tree_insert_from(tree *t, tree_node* node, void *e) {
+avl_tree_node* tree_insert_from(avl_tree *t, avl_tree_node* node, void *e) {
 
   /* 1.  Perform the normal BST insertion */
   if (node == NULL)
     return tree_new_node(e);
 
-  //Insert left in the tree
+  //Insert left in the avl_tree
   if (e < node->e)
     node->left  = tree_insert_from(t, node->left, e);
-  //Insert right in the tree
+  //Insert right in the avl_tree
   else if (e > node->e)
     node->right = tree_insert_from(t, node->right, e);
   //We cannot have duplicates
@@ -153,7 +153,7 @@ tree_node* tree_insert_from(tree *t, tree_node* node, void *e) {
 // Recursive function to delete a node with given e
 // from subtree with given node. It returns node of
 // the modified subtree.
-tree_node* tree_remove_from(tree *t, tree_node* node, void *e) {
+avl_tree_node* tree_remove_from(avl_tree *t, avl_tree_node* node, void *e) {
   // STEP 1: PERFORM STANDARD BST DELETE
   if (node == NULL)
     return node;
@@ -171,7 +171,7 @@ tree_node* tree_remove_from(tree *t, tree_node* node, void *e) {
     // the node to be deleted
     // node with only one child or no child
     if ((node->left == NULL) || (node->right == NULL)) {
-      tree_node *temp = node->left ? node->left : node->right;
+      avl_tree_node *temp = node->left ? node->left : node->right;
 
       // No child case
       if (temp == NULL) {
@@ -194,7 +194,7 @@ tree_node* tree_remove_from(tree *t, tree_node* node, void *e) {
     }
   }
 
-  // If the tree had only one node then return
+  // If the avl_tree had only one node then return
   if (node == NULL)
     return node;
 
@@ -233,9 +233,9 @@ tree_node* tree_remove_from(tree *t, tree_node* node, void *e) {
   return node;
 }
 
-// A utility function to print preorder traversal of the tree.
+// A utility function to print preorder traversal of the avl_tree.
 // The function also prints height of every node
-void tree_printr(tree_node *node, unsigned int offset, char *format) {
+void tree_printr(avl_tree_node *node, unsigned int offset, char *format) {
   if(node != NULL) {
     printf(format, node->e);
     tree_printr(node->left, offset - 4, format);
