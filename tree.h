@@ -20,7 +20,7 @@ static inline tree_node *tree_new_node(void* e) {
   tree_node *n = (tree_node*) malloc(sizeof(tree_node));
   n->left = n->right = NULL;
   n->e = e;
-  n->height = 0;
+  n->height = 1;
   return n;
 }
 
@@ -81,9 +81,9 @@ static void tree_insert(tree *t, void *e) {
 }
 
 // Recursive function to delete a node with given e
-// from subtree with given root. It returns root of
+// from subtree with given node. It returns node of
 // the modified subtree.
-tree_node* tree_remove_from(tree *t, tree_node* root, void *e);
+tree_node* tree_remove_from(tree *t, tree_node* node, void *e);
 //Simple wrapper for recursive function
 static void tree_remove(tree *t, void *e) {
   t->root = tree_remove_from(t, t->root, e);
@@ -95,6 +95,11 @@ void tree_printr(tree_node *node, unsigned int offset, char *format);
 static inline void tree_print(tree *t, char *format) {
   //  Print 4 spaces between nodes
   tree_printr(t->root, t->height*4, format);
+}
+static inline void tree_println(tree *t, char *format) {
+  //  Print 4 spaces between nodes
+  tree_printr(t->root, t->height*4, format);
+  printf("\n");
 }
 
 #endif

@@ -52,51 +52,48 @@ void *tree_min_from(tree_node *node) {
 int tree_get_node_balance(tree_node *n) {
   if (n == NULL)
     return 0;
-  return (int) tree_node_height(n->left) - (int) tree_node_height(n->right);
+  return (int) tree_node_height(n->right) - (int) tree_node_height(n->left);
 }
 
 
-// A utility function to right rotate subtree rooted with y
+// A utility function to left rotate subtree rooted with r
 // See the diagram given above.
-tree_node *tree_right_rotate(tree *t, tree_node *y) {
-  tree_node *x = y->left;
-  tree_node *T2 = x->right;
+tree_node *tree_left_rotate(tree *t, tree_node *r) {
+  tree_node *x = r->right;
+  tree_node *y = x->left;
 
   // Perform rotation
-  x->right = y;
-  y->left = T2;
+  x->left = r;
+  r->right = y;
 
-  // Update heights
-  y->height = max((void *) tree_node_height(y->left), (void *) tree_node_height(y->right)) + 1;
-  x->height = max((void *) tree_node_height(x->left), (void *) tree_node_height(x->right)) + 1;
-
-  //Update tree height
-  t->height = max((void *) t->height, (void *) tree_node_height(y));
+  //  Update heights
+  // y->height = max((void *) tree_node_height(y->left), (void *) tree_node_height(y->right)) + 1;
+  // x->height = max((void *) tree_node_height(x->left), (void *) tree_node_height(x->right)) + 1;
+  r->height -= 2;
 
   // Return new root
   return x;
 }
 
-// A utility function to left rotate subtree rooted with x
+// A utility function to right rotate subtree rooted with y
 // See the diagram given above.
-tree_node *tree_left_rotate(tree *t, tree_node *x) {
+tree_node *tree_right_rotate(tree *t, tree_node *r) {
+  tree_node *x = r->left;
   tree_node *y = x->right;
-  tree_node *T2 = y->left;
 
   // Perform rotation
-  y->left = x;
-  x->right = T2;
+  x->right = r;
+  r->left = y;
 
-  //  Update heights
-  y->height = max((void *) tree_node_height(y->left), (void *) tree_node_height(y->right)) + 1;
-  x->height = max((void *) tree_node_height(x->left), (void *) tree_node_height(x->right)) + 1;
-
-  //Update tree height
-  t->height = max((void *) t->height, (void *) tree_node_height(x));
+  // Update heights
+  // y->height = max((void *) tree_node_height(y->left), (void *) tree_node_height(y->right)) + 1;
+  // x->height = max((void *) tree_node_height(x->left), (void *) tree_node_height(x->right)) + 1;
+  r->height -= 2;
 
   // Return new root
-  return y;
+  return x;
 }
+
 // Recursive function to tree_insert_from a key in the subtree rooted
 // with node and returns the new root of the subtree.
 tree_node* tree_insert_from(tree *t, tree_node* node, void *e) {
@@ -130,21 +127,21 @@ tree_node* tree_insert_from(tree *t, tree_node* node, void *e) {
   // there are 4 cases
 
   // Left Left Case
-  if (balance > 1 && e < node->left->e)
+  if (balance < -1 && e < node->left->e)
     return tree_right_rotate(t, node);
 
   // Right Right Case
-  if (balance < -1 && e > node->right->e)
+  if (balance > 1 && e > node->right->e)
     return tree_left_rotate(t, node);
 
   // Left Right Case
-  if (balance > 1 && e > node->left->e) {
+  if (balance < -1 && e > node->left->e) {
     node->left = tree_left_rotate(t, node->left);
     return tree_right_rotate(t, node);
   }
 
   // Right Left Case
-  if (balance < -1 && e < node->right->e) {
+  if (balance > 1 && e < node->right->e) {
     node->right = tree_right_rotate(t, node->right);
     return tree_left_rotate(t, node);
   }
@@ -154,86 +151,86 @@ tree_node* tree_insert_from(tree *t, tree_node* node, void *e) {
 }
 
 // Recursive function to delete a node with given e
-// from subtree with given root. It returns root of
+// from subtree with given node. It returns node of
 // the modified subtree.
-tree_node* tree_remove_from(tree *t, tree_node* root, void *e) {
+tree_node* tree_remove_from(tree *t, tree_node* node, void *e) {
   // STEP 1: PERFORM STANDARD BST DELETE
-  if (root == NULL)
-    return root;
+  if (node == NULL)
+    return node;
 
   // If the e to be deleted is smaller than the
-  // root's e, then it lies in left subtree
-  if (e < root->e ) {
-    root->left = tree_remove_from(t, root->left, e);
-  } else if(e > root->e ) {
+  // node's e, then it lies in left subtree
+  if (e < node->e ) {
+    node->left = tree_remove_from(t, node->left, e);
+  } else if(e > node->e ) {
     // If the e to be deleted is greater than the
-    // root's e, then it lies in right subtree
-    root->right = tree_remove_from(t, root->right, e);
+    // node's e, then it lies in right subtree
+    node->right = tree_remove_from(t, node->right, e);
   } else {
-    // if e is same as root's e, then This is
+    // if e is same as node's e, then This is
     // the node to be deleted
     // node with only one child or no child
-    if ((root->left == NULL) || (root->right == NULL)) {
-      tree_node *temp = root->left ? root->left : root->right;
+    if ((node->left == NULL) || (node->right == NULL)) {
+      tree_node *temp = node->left ? node->left : node->right;
 
       // No child case
       if (temp == NULL) {
-        temp = root;
-        root = NULL;
+        temp = node;
+        node = NULL;
       } else {
         // One child case
         // Copy the contents of the non-empty child
-        *root = *temp;
+        *node = *temp;
       }
       free(temp);
     } else {
       // node with two children: Get the inorder
       // successor (smallest in the right subtree)
       // Copy the inorder successor's data to this node
-      root->e = tree_min_from(root->right);
+      node->e = tree_min_from(node->right);
 
       // Delete the inorder successor
-      root->right = tree_remove_from(t, root->right, root->e);
+      node->right = tree_remove_from(t, node->right, node->e);
     }
   }
 
   // If the tree had only one node then return
-  if (root == NULL)
-    return root;
+  if (node == NULL)
+    return node;
 
   // STEP 2: UPDATE HEIGHT OF THE CURRENT NODE
-  root->height = max(
-      (void *) tree_node_height(root->left),
-      (void *) tree_node_height(root->right)
+  node->height = max(
+      (void *) tree_node_height(node->left),
+      (void *) tree_node_height(node->right)
   ) + 1;
 
   // STEP 3: GET THE BALANCE FACTOR OF THIS NODE (to
   // check whether this node became unbalanced)
-  int balance = tree_get_node_balance(root);
+  int balance = tree_get_node_balance(node);
 
   // If this node becomes unbalanced, then there are 4 cases
 
   // Left Left Case
-  if (balance > 1 && tree_get_node_balance(root->left) >= 0)
-    return tree_right_rotate(t, root);
+  if (balance < -1 && tree_get_node_balance(node->left) <= 0)
+    return tree_right_rotate(t, node);
 
   // Left Right Case
-  if (balance > 1 && tree_get_node_balance(root->left) < 0) {
-    root->left =  tree_left_rotate(t, root->left);
-    return tree_right_rotate(t, root);
+  if (balance < -1 && tree_get_node_balance(node->left) > 0) {
+    node->left =  tree_left_rotate(t, node->left);
+    return tree_right_rotate(t, node);
   }
 
   // Right Right Case
-  if (balance < -1 && tree_get_node_balance(root->right) <= 0)
-    return tree_left_rotate(t, root);
+  if (balance > 1 && tree_get_node_balance(node->right) >= 0)
+    return tree_left_rotate(t, node);
 
   // Right Left Case
-  if (balance < -1 && tree_get_node_balance(root->right) > 0) {
-    root->right = tree_right_rotate(t, root->right);
-    return tree_left_rotate(t, root);
+  if (balance > 1 && tree_get_node_balance(node->right) < 0) {
+    node->right = tree_right_rotate(t, node->right);
+    return tree_left_rotate(t, node);
   }
 
-  return root;
+  return node;
 }
 
 // A utility function to print preorder traversal of the tree.
