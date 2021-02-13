@@ -3,37 +3,37 @@
 #include <stdbool.h>
 #include "list.h"
 
-//Initialize a new empty list
+// Initialize a new empty list
 list *list_new() {
   list *l = (list *) malloc(sizeof(list));
-  //Get 2 different pointers for checking later
+  // Get 2 different pointers for checking later
   l->head = list_new_node(NULL);
   l->tail = list_new_node(NULL);
-  //Remember to initialize length
+  // Remember to initialize length
   l->len = 0;
 
-  //Set head to face tail and vice versa
+  // Set head to face tail and vice versa
   l->head->next = l->head->prev = l->tail;
   l->tail->next = l->tail->prev = l->head;
   return l;
 }
 
-//Delete an existing list
-void list_del(list *l, bool is_heap) {
-  //Save the start pointer
+// Delete an existing list
+void list_del(list *l, void (*del) (void *e)) {
+  // Save the start pointer
   list_node *start = l->head;
   list_node *n = l->head;
   list_node *temp_n = n;
   do {
-    //Store pointer to next element
+    // Store pointer to next element
     temp_n = n->next;
-    //Remove the element if it's on the heap
-    if (is_heap && n->e != NULL)
-      free(n->e);
+    // Remove the element if it's on the heap
+    if (n->e != NULL)
+      del(n->e);
 
-    //Delete n
+    // Delete n
     free(n);
-    //Set it to the next pointer
+    // Set it to the next pointer
     n = temp_n;
   } while (n != start);
   free(l);
@@ -63,7 +63,7 @@ list_node *list_get_at(const list *l, const unsigned int index) {
   return n;
 }
 
-//Find position of node in the list
+// Find position of node in the list
 int list_get_at_pos(const list *l, const list_node* item) {
   int pos = 0;
   for (list_node *n = l->head; n != item; n = n->next)
@@ -71,8 +71,8 @@ int list_get_at_pos(const list *l, const list_node* item) {
   return pos;
 }
 
-//Find the first element in the list based on comparison function for more advanced checks
-//Returns NULL if nothing was found
+// Find the first element in the list based on comparison function for more advanced checks
+// Returns NULL if nothing was found
 list_node *list_find_with(const list *l, const void *e, int (*cmp)(const void *a, const void *b)) {
   list_node *n;
   for (n = l->head; n != l->head; n = n->next) {
@@ -82,27 +82,27 @@ list_node *list_find_with(const list *l, const void *e, int (*cmp)(const void *a
   return NULL;
 }
 
-//Insert element after item
+// Insert element after item
 void list_insert(list *l, list_node *item, void *e) {
   list_node *new_node = list_new_node(e);
 
-  //Shift the pointer so it points to the element before the fake tail
+  // Shift the pointer so it points to the element before the fake tail
   if (item == l->tail)
     item = item->prev;
 
-  //Set back pointer to the item being inserted after
+  // Set back pointer to the item being inserted after
   new_node->prev = item;
-  //Set next pointer to the item after the one we're inserting after
+  // Set next pointer to the item after the one we're inserting after
   new_node->next = item->next;
-  //Set the forward pointer of item and back pointer of the item after the new node to the new node
+  // Set the forward pointer of item and back pointer of the item after the new node to the new node
   item->next = new_node->next->prev = new_node;
 
-  //Bump up len
+  // Bump up len
   ++l->len;
 }
 
-//Pop item
-//Prone to memory leaking if try to free item twice
+// Pop item
+// Prone to memory leaking if try to free item twice
 void *list_pop(list *l, list_node *item) {
   void *e = item->e;
   item->prev->next = item->next;
@@ -112,25 +112,25 @@ void *list_pop(list *l, list_node *item) {
   return e;
 }
 
-//Reverses the list in place
+// Reverses the list in place
 list *list_rev(list *l) {
   list_node *n = l->head;
   list_node *next;
 
   do {
-    //Move forward in the list
+    // Move forward in the list
     next = n->next;
-    //Flip the pointers
+    // Flip the pointers
     swap_ptr((void **) &n->next, (void **) &n->prev);
-    //Continue to move forward
+    // Continue to move forward
     n = next;
   } while (n != l->head);
-  //Since the head and tail got reversed, change their order in the list
+  // Since the head and tail got reversed, change their order in the list
   swap_ptr((void **) &l->head, (void **) &l->tail);
   return l;
 }
 
-//Does a deep copy of elements into a new list. Allows you to specify how to deep copy
+// Does a deep copy of elements into a new list. Allows you to specify how to deep copy
 list *list_copy_with(const list *l, void *(copy)(const void *e)) {
   list *new_l = list_new();
   for (list_node *n = l->head->next; n != l->tail; n = n->next) {
@@ -139,76 +139,76 @@ list *list_copy_with(const list *l, void *(copy)(const void *e)) {
   return new_l;
 }
 
-//Concatenates 2 lists with copy function and returns a new list
+// Concatenates 2 lists with copy function and returns a new list
 list *list_concat_with(list *l1, list* l2, void *(copy)(const void *e)) {
-  //If either list is empty, no need to concatenate. Just copy the other one
+  // If either list is empty, no need to concatenate. Just copy the other one
   if (l1->len == 0)
     return list_copy_with(l2, copy);
   if (l2->len == 0)
     return list_copy_with(l1, copy);
 
-  //Make a new list without the head and tail
+  // Make a new list without the head and tail
   list *new_l = (list*) malloc(sizeof(list));
-  //Copy the 2 lists since these will be consumed
+  // Copy the 2 lists since these will be consumed
   list *new_l1 = list_copy_with(l1, copy);
   list *new_l2 = list_copy_with(l2, copy);
 
   /* Stitch all of the nodes together */
-  //Set the head
+  // Set the head
   new_l->head = new_l1->head;
-  //Set the tail, but also the previous pointer on the head ot the right tail
+  // Set the tail, but also the previous pointer on the head ot the right tail
   new_l->head->prev = new_l->tail = new_l2->tail;
-  //Set the tail's next to the right head
+  // Set the tail's next to the right head
   new_l->tail->next = new_l->head;
-  //Fix the last element in list 1 to point to the first element of list 2
+  // Fix the last element in list 1 to point to the first element of list 2
   list_node *temp = new_l1->tail->prev;
   new_l1->tail->prev->next = new_l2->head->next;
-  //Do the opposite
+  // Do the opposite
   new_l2->head->next->prev = temp;
 
 
-  //Capture the new length
+  // Capture the new length
   new_l->len = l1->len + l2->len;
 
-  //Free the unused nodes in the now consumed lists
+  // Free the unused nodes in the now consumed lists
   free(new_l1->tail);
   free(new_l2->head);
-  //Free the consumed lists
+  // Free the consumed lists
   free(new_l1);
   free(new_l2);
 
   return new_l;
 }
 
-//Print the contents of a list for debugging
+// Print the contents of a list for debugging
 void list_print(const list *l, const char *format) {
   for (list_node *n = l->head->next; n->next != l->head; n = n->next) {
     printf(format, n->e);
   }
 }
 
-//Print the contents of a list between nodes for debugging
+// Print the contents of a list between nodes for debugging
 void list_print_between(const list *l, const list_node *i, const list_node *j, const char *format) {
-  //Does not flip nodes if they are backwards unlike other function
+  // Does not flip nodes if they are backwards unlike other function
   list_node *n = i;
   while(n != j) {
-    //Print the format per node
+    // Print the format per node
     printf(format, n->e);
     n = n->next;
   }
 }
 
-//Print the contents of a list between indices for debugging
+// Print the contents of a list between indices for debugging
 void list_print_between_indices(const list *l, unsigned int i, unsigned int j, const char *format) {
-  //Flips signs if they are backwards
+  // Flips signs if they are backwards
   if (i > j) {
     list_print_between_indices(l, j, i, format);
   }
 
-  //Get the location of the node
+  // Get the location of the node
   list_node *n = list_get_at(l, i);
   while(i != j) {
-    //Print the format per node
+    // Print the format per node
     printf(format, n->e);
     n = n->next;
     ++i;

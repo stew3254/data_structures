@@ -4,7 +4,7 @@
 #include "stdlib.h"
 #include "stdbool.h"
 
-//Simple binary tree
+// Simple binary tree
 typedef struct TreeNode {
   struct TreeNode *left;
   struct TreeNode *right;
@@ -32,19 +32,19 @@ static inline tree *tree_new() {
 
 
 /* Destroy a tree and all elements inside */
-//Used to free nodes in a tree
-void tree_free_subnodes(tree_node *n, bool is_heap);
-//Not exactly meant to be called directly, main logic behind destroying the tree
-static inline void tree_del(tree *t, bool is_heap) {
-  //Set initial starting node
-  tree_free_subnodes(t->root, is_heap);
-  //Walk down the left side
+// Used to free nodes in a tree
+void tree_free_subnodes(tree_node *n, void (*del) (void *e));
+// Not exactly meant to be called directly, main logic behind destroying the tree
+static inline void tree_del(tree *t, void (*del) (void *e)) {
+  // Set initial starting node
+  tree_free_subnodes(t->root, del);
+  // Walk down the left side
   free(t);
 }
-//Will not remove items that are stack allocated
-static inline void tree_del_stack(tree *t) { tree_del(t, false); }
-//Will free elements before removing the nodes and vec
-static inline void tree_del_heap(tree *t) { tree_del(t, true); }
+// Will not remove items that are stack allocated
+static inline void tree_del_stack(tree *t) { tree_del(t, stack_del); }
+// Will free elements before removing the nodes and vec
+static inline void tree_del_heap(tree *t) { tree_del(t, heap_del); }
 
 // Check to see if the node is a leaf
 static inline bool tree_is_leaf(tree_node *n) { return (n->left == NULL && n->right == NULL); }
