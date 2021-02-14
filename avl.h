@@ -144,6 +144,7 @@ search_result avl_tree_get_from(
   const void *e,
   int (*cmp) (const void *a, const void *b)
 );
+
 // Wrapper for before but you can specify search function
 static inline search_result avl_tree_get_with(
   avl_tree *t,

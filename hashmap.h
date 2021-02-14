@@ -18,12 +18,32 @@ typedef struct Entry {
   size_t value_size;
 } hashmap_entry;
 
+
+/* Utility functions */
 // Default hashing function
 unsigned long hashpjw(const void *k, size_t n);
-
 // Comparison function for hashmap entries
 // Needed in key searching / sorting in the tree
 int map_simple_entry_cmp(const void *a, const void *b);
+// Simple entry removal
+static inline void map_simple_entry_remove(void *e) {
+  // Free the key and value
+  free(((hashmap_entry *) e)->key);
+  free(((hashmap_entry *) e)->value);
+  free(e);
+}
+// Preserve value on removal. Used when you get something from the map first
+// And then want to use that same pointer later without copying
+static inline void map_value_preserve_entry_remove(void *e) {
+  // Free the key and value
+  free(((hashmap_entry *) e)->key);
+  free(e);
+}
+// Used when both things came from the stack
+static inline void map_stack_entry_remove(void *e) {
+  // Simply free the entry
+  free(e);
+}
 
 // Assigning a different hashing function for the hashmap
 hashmap *map_with_func(size_t size, unsigned long (*hash) (const void* k, size_t n));
@@ -57,7 +77,11 @@ void map_insert(hashmap *m, void *k, size_t key_size, void *v, size_t value_size
 void map_get(hashmap *m, void *k, size_t key_size, void **v, size_t *value_size);
 
 // Remove key from the map
-//void *map_remove(hashmap *m, void *k, size_t key_size);
+void map_remove_with(hashmap *m, void *k, size_t key_size, void (*del) (void *e));
 
+// Remove key from the map
+static inline void map_remove(hashmap *m, void *k, size_t key_size) {
+  map_remove_with(m, k, key_size, map_simple_entry_remove);
+}
 
 #endif

@@ -96,3 +96,17 @@ void map_get(hashmap *m, void *k, size_t key_size, void **v, size_t *value_size)
     *value_size = -1;
   }
 }
+
+// Remove key from the map
+void map_remove_with(hashmap *m, void *k, size_t key_size, void (*del) (void *e)) {
+  unsigned int index = hashpjw(k, key_size) % m->bucket_size;
+  avl_tree *bucket = m->buckets[index];
+
+  // Make entry to search with
+  hashmap_entry entry = {
+    .key = k,
+    .key_size = key_size,
+  };
+
+  avl_tree_remove_with(bucket, &entry, map_simple_entry_cmp, del);
+}
