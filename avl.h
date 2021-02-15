@@ -4,6 +4,7 @@
 #include "stdlib.h"
 #include "stdbool.h"
 #include "simple_functions.h"
+#include "list.h"
 
 typedef struct AVLTreeNode {
   struct AVLTreeNode *left;
@@ -171,5 +172,8 @@ static inline void avl_tree_println(avl_tree *t, char *format) {
   avl_tree_printr(t->root, t->height*4, format);
   printf("\n");
 }
+
+// Converts the tree into a sorted list
+list *avl_tree_to_list(const avl_tree *t);
 
 #endif

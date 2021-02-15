@@ -167,7 +167,7 @@ list *list_concat_with(list *l1, list* l2, void *(copy)(const void *e)) {
   new_l2->head->next->prev = temp;
 
 
-  // Capture the new length
+  // Update the new length
   new_l->len = l1->len + l2->len;
 
   // Free the unused nodes in the now consumed lists
@@ -178,6 +178,56 @@ list *list_concat_with(list *l1, list* l2, void *(copy)(const void *e)) {
   free(new_l2);
 
   return new_l;
+}
+
+// Concatenates 2 lists but consumes them both
+list *list_concat_consume_with(
+    list *l1,
+    list* l2,
+    void *(*copy) (const void *e),
+    void (*del) (void *e)
+) {
+  // Make sure they aren't the same list
+  if (l1 == l2) {
+    // Make a copy of it that we can consume later
+    l2 = list_copy_with(l1, copy);
+  }
+
+  // If either list is empty, no need to concatenate. Just give it the other one
+  if (l1->len == 0) {
+    list_del(l1, del);
+    return l2;
+  }
+  if (l2->len == 0) {
+    list_del(l2, del);
+    return l1;
+  }
+
+  // Capture the old head and tail since we will need to free them later
+  list_node *old_head = l2->head;
+  list_node *old_tail = l1->tail;
+
+  /* Stitch all of the nodes together */
+  // Set the tail, but also the previous pointer on the head ot the right tail
+  l1->head->prev = l1->tail = l2->tail;
+  // Set the tail's next to the right head
+  l1->tail->next = l1->head;
+  // Fix the last element in list 1 to point to the first element of list 2
+  list_node *temp = l1->tail->prev;
+  old_tail->prev->next = l2->head->next;
+  // Do the opposite
+  old_head->next->prev = temp;
+
+  // Update the new length
+  l1->len += l2->len;
+
+  // Free the unused nodes in the now consumed lists
+  free(old_head);
+  free(old_tail);
+  // Free the consumed list
+  free(l2);
+
+  return l1;
 }
 
 // Print the contents of a list for debugging

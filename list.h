@@ -79,14 +79,25 @@ static inline void *list_pop_back(list *l) { return list_pop(l, l->tail->prev); 
 list *list_rev(list *l);
 
 // Does a deep copy of elements into a new list. Allows you to specify how to deep copy
-list *list_copy_with(const list *l, void *(copy)(const void *e));
+list *list_copy_with(const list *l, void *(*copy)(const void *e));
 // Does a shallow copy of elements into a new list. Works well for simple types
 static inline list *list_copy(const list *l) { return list_copy_with(l, return_elem); }
 
 // Concatenates 2 lists with copy function and returns a new list
-list *list_concat_with(list *l1, list* l2, void *(copy)(const void *e));
+list *list_concat_with(list *l1, list* l2, void *(*copy)(const void *e));
 // Concatenates 2 lists and returns a new list
 static inline list *list_concat(list *l1, list* l2) { return list_concat_with(l1, l2, return_elem); }
+// Concatenates 2 lists with copy function if needed but consumes them both
+list *list_concat_consume_with(
+    list *l1,
+    list* l2,
+    void *(*copy)(const void *e),
+    void (*del)(void *e)
+);
+// Concatenates 2 lists but consumes them both
+static inline list *list_concat_consume(list *l1, list* l2, void (*del)(void *e)) {
+  return list_concat_consume_with(l1, l2, return_elem, del);
+}
 
 /* Print functions. Prints format per node */
 // Prints the contents of the whole list

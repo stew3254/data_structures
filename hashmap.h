@@ -3,6 +3,7 @@
 
 #include "simple_functions.h"
 #include "avl.h"
+#include "list.h"
 
 typedef struct HashMap {
   avl_tree **buckets;
@@ -83,5 +84,8 @@ void map_remove_with(hashmap *m, void *k, size_t key_size, void (*del) (void *e)
 static inline void map_remove(hashmap *m, void *k, size_t key_size) {
   map_remove_with(m, k, key_size, map_simple_entry_remove);
 }
+
+// Get pairs in map
+list *map_pairs(const hashmap *m);
 
 #endif

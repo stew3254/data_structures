@@ -33,7 +33,7 @@ void *vec_grow_array(void *a, size_t size, unsigned int *capacity, unsigned int 
   }
   a = realloc(a, (size * *capacity)+1);
   // Make sure to set the last value to 0
-  memset(a, *capacity-len+1, size);
+   memset(a+len, 0, (*capacity-len+1)*size);
   // Assign the new array
   return a;
 }

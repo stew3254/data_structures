@@ -289,3 +289,8 @@ void avl_tree_printr(avl_tree_node *node, unsigned int offset, char *format) {
     avl_tree_printr(node->right, offset - 4, format);
   }
 }
+
+// Converts the tree into a sorted list
+list *avl_tree_to_list(const avl_tree *t) {
+  list *l = list_new();
+}

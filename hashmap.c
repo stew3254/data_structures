@@ -1,6 +1,7 @@
-#include "avl.h"
-#include "hashmap.h"
 #include "stdio.h"
+#include "avl.h"
+#include "vec.h"
+#include "hashmap.h"
 
 //Default hashing function
 unsigned long hashpjw(const void *k, size_t n) {
@@ -109,4 +110,12 @@ void map_remove_with(hashmap *m, void *k, size_t key_size, void (*del) (void *e)
   };
 
   avl_tree_remove_with(bucket, &entry, map_simple_entry_cmp, del);
+}
+
+// Get pairs in map
+list *map_pairs(const hashmap *m) {
+  avl_tree *bucket;
+  for (unsigned int i = 0; i < m->bucket_size; ++i) {
+    bucket = m->buckets[i];
+  }
 }
