@@ -72,20 +72,63 @@ static inline void map_del(hashmap *m, void (*del) (void *e)) {
 }
 
 // Insert into the map
-void map_insert(hashmap *m, void *k, size_t key_size, void *v, size_t value_size);
+// The key must be a pointer to the thing you actually want to use
+void map_insert_with(
+    hashmap *m,
+    void **k,
+    size_t key_size,
+    void *v,
+    size_t value_size,
+    void (*del) (void *e)
+);
 
 // Get key from the map. If value_size is -1 then the value was not found
-void map_get(hashmap *m, void *k, size_t key_size, void **v, size_t *value_size);
+// The key must be a pointer to the thing you actually want to use
+void map_get(hashmap *m, void **k, size_t key_size, void **v, size_t *value_size);
 
 // Remove key from the map
-void map_remove_with(hashmap *m, void *k, size_t key_size, void (*del) (void *e));
+// The key must be a pointer to the thing you actually want to use
+void map_remove_with(hashmap *m, void **k, size_t key_size, void (*del) (void *e));
 
 // Remove key from the map
+// The key must be a pointer to the thing you actually want to use
 static inline void map_remove(hashmap *m, void *k, size_t key_size) {
   map_remove_with(m, k, key_size, map_simple_entry_remove);
 }
 
 // Get pairs in map
-list *map_pairs(const hashmap *m);
+static inline list *map_pairs(const hashmap *m) {
+  list *l = avl_tree_to_list(m->buckets[0]);
+  for (unsigned int i = 1; i < m->bucket_size; ++i)
+    l = list_concat_consume(l, avl_tree_to_list(m->buckets[i]), return_elem);
+  return l;
+}
+// Get keys in map
+list *map_keys(const hashmap *m);
+// Get values in map
+list *map_values(const hashmap *m);
+
+/* Printing utilities */
+// Print a hashmap
+void map_print(const hashmap *m, char *key_format, char *value_format);
+// Print a hashmap but with a newline at the end
+static inline void map_println(const hashmap *m, char *key_format, char *value_format) {
+  map_print(m, key_format, value_format);
+  printf("\n");
+}
+// Print keys of a hashmap
+void map_keys_print(const hashmap *m, char *format);
+// Print a hashmap but with a newline at the end
+static inline void map_keys_println(const hashmap *m, char *format) {
+  map_keys_print(m, format);
+  printf("\n");
+}
+// Print values of a hashmap
+void map_values_print(const hashmap *m, char *format);
+// Print a hashmap but with a newline at the end
+static inline void map_values_println(const hashmap *m, char *format) {
+  map_values_print(m, format);
+  printf("\n");
+}
 
 #endif

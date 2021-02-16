@@ -96,18 +96,24 @@ avl_tree_node* avl_tree_insert_from(
   avl_tree *t,
   avl_tree_node* node,
   void *e,
-  int (*cmp) (const void *a, const void *b)
+  int (*cmp) (const void *a, const void *b),
+  void (*del) (const void *e)
 );
 // Simple wrapper for recursive function
-static inline void avl_tree_insert_with(avl_tree *t, void *e, int (*cmp) (const void *a, const void *b)) {
-  t->root = avl_tree_insert_from(t, t->root, e, cmp);
+static inline void avl_tree_insert_with(
+    avl_tree *t,
+    void *e,
+    int (*cmp) (const void *a, const void *b),
+    void (*del) (const void *e)
+) {
+  t->root = avl_tree_insert_from(t, t->root, e, cmp, del);
   ++t->len;
   t->height = avl_tree_height(t);
 }
 
 // Simple wrapper for recursive function
-static inline void avl_tree_insert(avl_tree *t, void *e) {
-  avl_tree_insert_with(t, e, simple_cmp);
+static inline void avl_tree_insert(avl_tree *t, void *e, void (*del) (const void *e)) {
+  avl_tree_insert_with(t, e, simple_cmp, del);
 }
 
 // Recursive function to delete a node with given e
@@ -173,7 +179,15 @@ static inline void avl_tree_println(avl_tree *t, char *format) {
   printf("\n");
 }
 
+// Converts the tree into a sorted list from a certain point in the tree
+void avl_tree_to_list_from(const avl_tree *t, avl_tree_node *n, list *l);
 // Converts the tree into a sorted list
-list *avl_tree_to_list(const avl_tree *t);
+static inline list *avl_tree_to_list(const avl_tree *t) {
+  list *l = list_new();
+  // Make sure we don't accidentally dereference a null pointer
+  if (t->root != NULL)
+    avl_tree_to_list_from(t, t->root, l);
+  return l;
+}
 
 #endif

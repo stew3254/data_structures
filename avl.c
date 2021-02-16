@@ -110,7 +110,8 @@ avl_tree_node* avl_tree_insert_from(
   avl_tree *t,
   avl_tree_node* node,
   void *e,
-  int (*cmp) (const void *a, const void *b)
+  int (*cmp) (const void *a, const void *b),
+  void (*del) (const void *e)
 ) {
 
   /* 1.  Perform the normal BST insertion */
@@ -119,14 +120,17 @@ avl_tree_node* avl_tree_insert_from(
   }
 
   //Insert left in the avl_tree
-  if (cmp(e, node->e) < 0)
-    node->left  = avl_tree_insert_from(t, node->left, e, cmp);
-  //Insert right in the avl_tree
-  else if (cmp(e, node->e) > 0)
-    node->right = avl_tree_insert_from(t, node->right, e, cmp);
-  //We cannot have duplicates
-  else // Equal keys are not allowed in BST
+  if (cmp(e, node->e) < 0) {
+    node->left  = avl_tree_insert_from(t, node->left, e, cmp, del);
+  } else if (cmp(e, node->e) > 0) {
+    //Insert right in the avl_tree
+    node->right = avl_tree_insert_from(t, node->right, e, cmp, del);
+  } else {
+    //We cannot have duplicates, so update it
+    del(node->e);
+    node->e = e;
     return node;
+  }
 
   /* 2. Update height of this ancestor node */
   node->height = max(
@@ -291,6 +295,13 @@ void avl_tree_printr(avl_tree_node *node, unsigned int offset, char *format) {
 }
 
 // Converts the tree into a sorted list
-list *avl_tree_to_list(const avl_tree *t) {
-  list *l = list_new();
+void avl_tree_to_list_from(const avl_tree *t, avl_tree_node *n, list *l) {
+  // Descend left subtree
+  if (n->left != NULL)
+    avl_tree_to_list_from(t, n->left, l);
+  // Add the current element
+  list_push_back(l, n->e);
+  // Descend right subtree
+  if (n->right != NULL)
+    avl_tree_to_list_from(t, n->right, l);
 }
