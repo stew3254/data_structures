@@ -28,6 +28,18 @@ void tree_free_subnodes(tree *t, tree_node *n) {
   free(n);
 }
 
+// Calculate tree length in case we hadn't been keeping track properly
+unsigned int tree_calc_len_from(tree *t, tree_node *n) {
+  unsigned int len = 0;
+  if (n == NULL)
+    return 0;
+  if (n->left != NULL)
+    len += tree_calc_len_from(t, n->left);
+  if (n->right != NULL)
+    len += tree_calc_len_from(t, n->right);
+  return len + 1;
+}
+
 // Get height of the tree from the current position
 unsigned int tree_height_from(tree *t, tree_node *n) {
   if (n == NULL)

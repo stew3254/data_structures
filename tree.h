@@ -40,9 +40,27 @@ static inline void tree_del(tree *t) {
   free(t);
 }
 
+// Simple thing to add to the left of the tree and keep track of the length
+static inline tree_node *tree_add_left(tree *t, tree_node *n, void* e) {
+  ++t->len;
+  return n->left = tree_new_node(e);
+}
+// Simple thing to add to the right of the tree and keep track of the length
+static inline tree_node *tree_add_right(tree *t, tree_node *n, void* e) {
+  ++t->len;
+  return n->right = tree_new_node(e);
+}
+
 // Check to see if the node is a leaf
 static inline bool tree_is_leaf(tree_node *n) {
   return (n->left == NULL && n->right == NULL);
+}
+
+// Calculate tree length from node in case we hadn't been keeping track properly
+unsigned int tree_calc_len_from(tree *t, tree_node* n);
+// Calculate tree length in case we hadn't been keeping track properly
+static inline unsigned int tree_calc_len(tree *t) {
+  return t->len = tree_calc_len_from(t, t->root);
 }
 
 // Get height of the tree from the current position
