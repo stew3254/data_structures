@@ -7,24 +7,24 @@
 #include "list.h"
 
 typedef struct AVLTreeNode {
-  struct AVLTreeNode *left;
-  struct AVLTreeNode *right;
-  void *e;
-  unsigned int height;
+    struct AVLTreeNode *left;
+    struct AVLTreeNode *right;
+    void *e;
+    unsigned int height;
 } avl_tree_node;
 
 typedef struct AVLTree {
-  avl_tree_node *root;
-  unsigned int height;
-  unsigned int len;
-  int (*cmp) (const void *a, const void *b);
-  void *(*copy) (const void *e);
-  void (*del) (void *e);
+    avl_tree_node *root;
+    unsigned int height;
+    unsigned int len;
+    int (*cmp) (const void *a, const void *b);
+    void *(*copy) (const void *e);
+    void (*del) (void *e);
 } avl_tree;
 
 typedef struct AVLTreeSearchResult {
-  bool found;
-  void * e;
+    bool found;
+    void * e;
 } search_result;
 
 static inline avl_tree_node *avl_tree_new_node(void* e) {

@@ -5,9 +5,9 @@
 
 // Initialize a new empty list
 list *list_new(
-  int (*cmp) (const void *a, const void *b),
-  void *(*copy) (const void *e),
-  void (*del) (void *e)
+    int (*cmp) (const void *a, const void *b),
+    void *(*copy) (const void *e),
+    void (*del) (void *e)
 ) {
   list *l = (list *) malloc(sizeof(list));
   // Get 2 different pointers for checking later

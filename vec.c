@@ -5,19 +5,27 @@
 #include "vec.h"
 
 // Initialize a new empty vec
-vec *vec_with_cap(unsigned int capacity) {
+vec *vec_with_cap(
+    int (*cmp) (const void *a, const void *b),
+    void *(*copy) (const void *e),
+    void (*del) (void *e),
+    unsigned int capacity
+) {
   vec *v = (vec *) malloc(sizeof(vec));
   v->cap = capacity;
   v->len = 0;
   v->data = calloc(v->cap + 1, sizeof(ptrdiff_t));
+  v->cmp = cmp;
+  v->copy = copy;
+  v->del = del;
   return v;
 }
 
 // Delete an existing vec
-void vec_del(vec *v, void (*del) (void *e)) {
+void vec_del(vec *v) {
   for (int i = 0; i < v->len; ++i) {
     // Remove the element if it's on the heap
-    del(*(v->data+i));
+    v->del(*(v->data+i));
   }
   free(v);
 }
@@ -33,7 +41,7 @@ void *vec_grow_array(void *a, size_t size, unsigned int *capacity, unsigned int 
   }
   a = realloc(a, (size * *capacity)+1);
   // Make sure to set the last value to 0
-   memset(a+len, 0, (*capacity-len+1)*size);
+  memset(a+len, 0, (*capacity-len+1)*size);
   // Assign the new array
   return a;
 }
@@ -123,6 +131,11 @@ int vec_insert(vec *v, const unsigned int index, void *e) {
   return 0;
 }
 
+// Pops the element in the vector
+void *vec_pop(vec *v, unsigned int index) {
+//  v->
+}
+
 // Reverses the vec in place
 vec *vec_rev(vec *v) {
   unsigned int i = 0;
@@ -133,23 +146,14 @@ vec *vec_rev(vec *v) {
   return v;
 }
 
-// Does a deep copy of elements into a new vec. Allows you to specify how to deep copy
-vec *vec_copy_with(const vec *v, void *(copy)(const void *e)) {
-  vec *new_v = vec_with_cap(v->cap);
-  for (unsigned int i = 0; i < v->len; ++i) {
-    vec_push_back(new_v, copy(v->data[i]));
-  }
-  return new_v;
-}
-
 // Concatenates 2 vecs with copy function and returns a new vec
 // Must be of the same type if you want this to work correctly
-vec *vec_concat_with(vec *v1, vec* v2, void *(copy)(const void *e)) {
+vec *vec_concat(vec *v1, vec* v2) {
   // If either vec is empty, no need to concatenate. Just copy the other one
   if (v1->len == 0)
-    return vec_copy_with(v2, copy);
+    return vec_copy(v2);
   if (v2->len == 0)
-    return vec_copy_with(v1, copy);
+    return vec_copy(v1);
 
   // Make a new capacity that is a power of 2 larger than the length of the 2 vecs added together
   int cap = 1;
@@ -157,16 +161,16 @@ vec *vec_concat_with(vec *v1, vec* v2, void *(copy)(const void *e)) {
     cap <<= 1;
 
   // Make a new vec
-  vec *new_v = vec_with_cap(cap);
+  vec *new_v = vec_with_cap(v1->cmp, v1->copy, v1->del, cap);
 
   // Copy the items over from v1
   for (unsigned int i = 0; i < v1->len; ++i) {
-    new_v->data[i] = copy(v1->data[i]);
+    new_v->data[i] = v1->copy(v1->data[i]);
   }
 
   // Copy the items over from v2
   for (unsigned int i = 0; i < v2->len; ++i) {
-    new_v->data[i+v1->len] = copy(v2->data[i]);
+    new_v->data[i+v1->len] = v2->copy(v2->data[i]);
   }
 
   // Capture the new length
@@ -177,7 +181,7 @@ vec *vec_concat_with(vec *v1, vec* v2, void *(copy)(const void *e)) {
 
 // Print the contents of a vec for debugging
 void vec_print(const vec *v, const char *format) {
-  for (int i = 0; i < v->len; ++i) {
+  for (unsigned int i = 0; i < v->len; ++i) {
     printf(format, v->data[i]);
   }
 }
@@ -185,6 +189,6 @@ void vec_print(const vec *v, const char *format) {
 // Print the contents of a vec between nodes for debugging
 void vec_print_between(const vec *v, unsigned int i, unsigned int j, const char *format) {
   // Does not flip nodes if they are backwards unlike other function
-  for (int idx = i; idx < j; ++idx)
+  for (unsigned int idx = i; idx < j; ++idx)
     printf(format, v->data[i]);
 }

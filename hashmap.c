@@ -67,7 +67,6 @@ hashmap *map_with_hash(
 // The key must be a pointer to the thing you actually want to use
 void map_insert(hashmap *m, void **k, unsigned int key_size, unsigned int key_len, void *v) {
   unsigned int index = hashpjw(k, key_size) % m->bucket_size;
-  printf("%d\n", index);
   avl_tree *bucket = m->buckets[index];
 
   // Wipe high bytes in key when size is less than 8
@@ -95,9 +94,9 @@ int map_get(hashmap *m, void **k, unsigned int key_size, unsigned int key_len, v
 
   // Make entry to search with
   hashmap_entry entry = {
-    .key = *k,
-    .key_size = key_size,
-    .key_len = key_len,
+      .key = *k,
+      .key_size = key_size,
+      .key_len = key_len,
   };
 
   // Get the result from our tree
@@ -118,8 +117,8 @@ void map_remove_with(hashmap *m, void **k, unsigned int key_size, void (*del) (v
 
   // Make entry to search with
   hashmap_entry entry = {
-    .key = *k,
-    .key_size = key_size,
+      .key = *k,
+      .key_size = key_size,
   };
 
   avl_tree_remove(bucket, &entry);

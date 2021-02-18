@@ -6,18 +6,18 @@
 #include "list.h"
 
 typedef struct HashMap {
-  avl_tree **buckets;
-  unsigned int bucket_size;
-  unsigned long (*hash) (const void* k, size_t n);
-  void (*del) (void* e);
-  unsigned int len;
+    avl_tree **buckets;
+    unsigned int bucket_size;
+    unsigned long (*hash) (const void* k, size_t n);
+    void (*del) (void* e);
+    unsigned int len;
 } hashmap;
 
 typedef struct Entry {
-  void *key;
-  void *value;
-  unsigned int key_size;
-  unsigned int key_len;
+    void *key;
+    void *value;
+    unsigned int key_size;
+    unsigned int key_len;
 } hashmap_entry;
 
 
@@ -39,11 +39,6 @@ static inline void map_simple_entry_remove(void *e) {
 static inline void map_value_preserve_entry_remove(void *e) {
   // Free the key and value
   free(((hashmap_entry *) e)->key);
-  free(e);
-}
-// Used when both things came from the stack
-static inline void map_stack_entry_remove(void *e) {
-  // Simply free the entry
   free(e);
 }
 
