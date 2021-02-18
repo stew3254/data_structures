@@ -14,18 +14,20 @@ typedef struct List {
   list_node *head;
   list_node *tail;
   unsigned int len;
+  int (*cmp) (const void *a, const void *b);
+  void *(*copy) (const void *e);
+  void (*del) (void *e);
 } list;
 
-/* Create a list */
-list *list_new();
+// Create a list
+list *list_new(
+    int (*cmp) (const void *a, const void *b),
+    void *(*copy) (const void *e),
+    void (*del) (void *e)
+);
 
-/* Destroy a list and all elements inside */
-// Not exactly meant to be called directly, main logic behind destroying the list
-void list_del(list *l, void (*del) (void *e));
-// Will not remove items that are stack allocated
-static inline void list_del_stack(list *l) { list_del(l, stack_del); }
-// Will free elements before removing the nodes and list
-static inline void list_del_heap(list *l) { list_del(l, heap_del); }
+// Destroy a list and all elements inside
+void list_del(list *l);
 
 // Create a new node to add to the list. Not meant to call this directly
 static inline list_node *list_new_node(void *e) {

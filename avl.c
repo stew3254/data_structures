@@ -8,19 +8,34 @@
 #include "simple_functions.h"
 #include "avl.h"
 
+avl_tree *avl_tree_new(
+    int (*cmp) (const void *a, const void *b),
+    void *(*copy) (const void *e),
+    void (*del) (void *e)
+) {
+  avl_tree *t = (avl_tree*) malloc(sizeof(avl_tree));
+  t->root = NULL;
+  t->height = 0;
+  t->len = 0;
+  t->cmp = cmp;
+  t->copy = copy;
+  t->del = del;
+  return t;
+}
+
 //Used to free nodes in a avl_tree
-void avl_tree_free_subnodes(avl_tree_node *n, void (*del) (void *e)) {
+void avl_tree_free_subnodes(avl_tree *t, avl_tree_node *n) {
   //Free left hand side
   if (n->left != NULL) {
-    avl_tree_free_subnodes(n->left, del);
+    avl_tree_free_subnodes(t, n->left);
   }
   //Free right hand side
   if (n->right != NULL) {
-    avl_tree_free_subnodes(n->right, del);
+    avl_tree_free_subnodes(t, n->right);
   }
 
   //Clean up current node
-  del(n->e);
+  t->del(n->e);
   free(n);
 }
 
@@ -106,28 +121,21 @@ avl_tree_node *avl_tree_right_rotate(avl_tree_node *r) {
 
 // Recursive function to avl_tree_insert_from a key in the subtree rooted
 // with node and returns the new root of the subtree.
-avl_tree_node* avl_tree_insert_from(
-  avl_tree *t,
-  avl_tree_node* node,
-  void *e,
-  int (*cmp) (const void *a, const void *b),
-  void (*del) (const void *e)
-) {
-
+avl_tree_node* avl_tree_insert_from(avl_tree *t, avl_tree_node* node, void *e) {
   /* 1.  Perform the normal BST insertion */
   if (node == NULL) {
     return avl_tree_new_node(e);
   }
 
   //Insert left in the avl_tree
-  if (cmp(e, node->e) < 0) {
-    node->left  = avl_tree_insert_from(t, node->left, e, cmp, del);
-  } else if (cmp(e, node->e) > 0) {
+  if (t->cmp(e, node->e) < 0) {
+    node->left  = avl_tree_insert_from(t, node->left, e);
+  } else if (t->cmp(e, node->e) > 0) {
     //Insert right in the avl_tree
-    node->right = avl_tree_insert_from(t, node->right, e, cmp, del);
+    node->right = avl_tree_insert_from(t, node->right, e);
   } else {
     //We cannot have duplicates, so update it
-    del(node->e);
+    t->del(node->e);
     node->e = e;
     return node;
   }
@@ -147,21 +155,21 @@ avl_tree_node* avl_tree_insert_from(
   // there are 4 cases
 
   // Left Left Case
-  if (balance < -1 && cmp(e, node->left->e) < 0)
+  if (balance < -1 && t->cmp(e, node->left->e) < 0)
     return avl_tree_right_rotate(node);
 
   // Right Right Case
-  if (balance > 1 && cmp(e, node->right->e) > 0)
+  if (balance > 1 && t->cmp(e, node->right->e) > 0)
     return avl_tree_left_rotate(node);
 
   // Left Right Case
-  if (balance < -1 && cmp(e, node->left->e) > 0) {
+  if (balance < -1 && t->cmp(e, node->left->e) > 0) {
     node->left = avl_tree_left_rotate(node->left);
     return avl_tree_right_rotate(node);
   }
 
   // Right Left Case
-  if (balance > 1 && cmp(e, node->right->e) < 0) {
+  if (balance > 1 && t->cmp(e, node->right->e) < 0) {
     node->right = avl_tree_right_rotate(node->right);
     return avl_tree_left_rotate(node);
   }
@@ -173,25 +181,19 @@ avl_tree_node* avl_tree_insert_from(
 // Recursive function to delete a node with given e
 // from subtree with given node. It returns node of
 // the modified subtree.
-avl_tree_node* avl_tree_remove_from(
-  avl_tree *t,
-  avl_tree_node* node,
-  void *e,
-  int (*cmp) (const void *a, const void *b),
-  void (*del) (void *e)
-) {
+avl_tree_node* avl_tree_remove_from(avl_tree *t, avl_tree_node* node, void *e) {
   // STEP 1: PERFORM STANDARD BST DELETE
   if (node == NULL)
     return node;
 
   // If the e to be deleted is smaller than the
   // node's e, then it lies in left subtree
-  if (cmp(e, node->e) < 0) {
-    node->left = avl_tree_remove_from(t, node->left, e, cmp, del);
-  } else if(cmp(e, node->e) > 0) {
+  if (t->cmp(e, node->e) < 0) {
+    node->left = avl_tree_remove_from(t, node->left, e);
+  } else if(t->cmp(e, node->e) > 0) {
     // If the e to be deleted is greater than the
     // node's e, then it lies in right subtree
-    node->right = avl_tree_remove_from(t, node->right, e, cmp, del);
+    node->right = avl_tree_remove_from(t, node->right, e);
   } else {
     // if e is same as node's e, then This is
     // the node to be deleted
@@ -209,7 +211,7 @@ avl_tree_node* avl_tree_remove_from(
         *node = *temp;
       }
       // Handle deletion of the node's element
-      del(temp->e);
+      t->del(temp->e);
       // Delete the node
       free(temp);
     } else {
@@ -219,7 +221,7 @@ avl_tree_node* avl_tree_remove_from(
       node->e = avl_tree_min_from(node->right);
 
       // Delete the inorder successor
-      node->right = avl_tree_remove_from(t, node->right, node->e, cmp, del);
+      node->right = avl_tree_remove_from(t, node->right, node->e);
     }
   }
 
@@ -263,21 +265,16 @@ avl_tree_node* avl_tree_remove_from(
 }
 
 // Find based on certain function and height
-search_result avl_tree_get_from(
-  avl_tree *t,
-  avl_tree_node *n,
-  const void *e,
-  int (*cmp) (const void *a, const void *b)
-) {
+search_result avl_tree_get_from(avl_tree *t, avl_tree_node *n, const void *e) {
   if (n == NULL) {
     search_result r = { .found = false };
     return r;
   }
 
-  if (cmp(e, n->e) < 0) {
-    return avl_tree_get_from(t, n->left, e, cmp);
-  } else if (cmp(e, n->e) > 0) {
-    return avl_tree_get_from(t, n->right, e, cmp);
+  if (t->cmp(e, n->e) < 0) {
+    return avl_tree_get_from(t, n->left, e);
+  } else if (t->cmp(e, n->e) > 0) {
+    return avl_tree_get_from(t, n->right, e);
   } else {
     search_result r = { .found = true, .e = n->e};
     return r;

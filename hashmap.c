@@ -43,15 +43,20 @@ int map_simple_entry_cmp(const void *a, const void *b) {
   return 0;
 }
 
-hashmap *map_with_func(size_t size, unsigned long (*hash) (const void* k, size_t n)) {
+hashmap *map_with_hash(
+    size_t size,
+    unsigned long (*hash) (const void* k, size_t n),
+    void (*del) (void *e)
+) {
   hashmap *m = (hashmap *) malloc(sizeof(hashmap));
   m->hash = hash;
+  m->del = del;
   m->bucket_size = size;
   m->len = 0;
   m->buckets = malloc(sizeof(avl_tree)*(size+1));
   // Initialize all of the trees
   for (size_t i = 0; i < size; ++i) {
-    m->buckets[i] = avl_tree_new();
+    m->buckets[i] = avl_tree_new(map_simple_entry_cmp, return_elem, del);
   }
   // Set last bucket to NULL just in case
   m->buckets[size] = NULL;
@@ -60,42 +65,31 @@ hashmap *map_with_func(size_t size, unsigned long (*hash) (const void* k, size_t
 
 // Insert into the map
 // The key must be a pointer to the thing you actually want to use
-void map_insert_with(
-    hashmap *m,
-    void **k,
-    size_t key_size,
-    void *v,
-    size_t value_size,
-    void (*del) (void *e)
-) {
+void map_insert(hashmap *m, void **k, unsigned int key_size, unsigned int key_len, void *v) {
   unsigned int index = hashpjw(k, key_size) % m->bucket_size;
+  printf("%d\n", index);
   avl_tree *bucket = m->buckets[index];
 
   // Wipe high bytes in key when size is less than 8
-  // This is fine if 8 - key_size comes out to be negative, then we do not need to wipe it
-  unsigned long mask = 0;
+  // This is fine if 8 - key_size comes out to be 0
   ptrdiff_t key = *k;
-  size_t shift = sizeof(ptrdiff_t) - key_size;
-  // Create the mask
-  for (unsigned long i = 0; i < shift; ++i) {
-    mask |= 1 << i;
-  }
-  // Wipe the high bits of the key with the mask
-  key &= mask;
+  long shift = 8 - key_size;
+  if (shift > 0)
+    key = (key << shift*8) >> shift*8;
 
   // Initialize the entry
   hashmap_entry *e = (void *) malloc(sizeof(hashmap_entry));
   e->key = key;
   e->key_size = key_size;
+  e->key_len = key_len;
   e->value = v;
-  e->value_size = value_size;
 
   // Insert into the bucket
-  avl_tree_insert_with(bucket, e, map_simple_entry_cmp, del);
+  avl_tree_insert(bucket, e);
 }
 
 // Get key from the map. If value_size is -1 then the value was not found
-void map_get(hashmap *m, void **k, size_t key_size, void **v, size_t *value_size) {
+int map_get(hashmap *m, void **k, unsigned int key_size, unsigned int key_len, void **v) {
   unsigned int index = hashpjw(k, key_size) % m->bucket_size;
   avl_tree *bucket = m->buckets[index];
 
@@ -103,23 +97,22 @@ void map_get(hashmap *m, void **k, size_t key_size, void **v, size_t *value_size
   hashmap_entry entry = {
     .key = *k,
     .key_size = key_size,
+    .key_len = key_len,
   };
 
   // Get the result from our tree
-  search_result r = avl_tree_get_with(bucket, &entry, map_simple_entry_cmp);
+  search_result r = avl_tree_get(bucket, &entry);
 
   // Set the value if we found it
   if (r.found) {
     *v = ((hashmap_entry *) r.e)->value;
-    *value_size = ((hashmap_entry *) r.e)->value_size;
-  } else {
-    // Alert the user we did not find it
-    *value_size = -1;
+    return 0;
   }
+  return -1;
 }
 
 // Remove key from the map
-void map_remove_with(hashmap *m, void **k, size_t key_size, void (*del) (void *e)) {
+void map_remove_with(hashmap *m, void **k, unsigned int key_size, void (*del) (void *e)) {
   unsigned int index = hashpjw(k, key_size) % m->bucket_size;
   avl_tree *bucket = m->buckets[index];
 
@@ -129,21 +122,24 @@ void map_remove_with(hashmap *m, void **k, size_t key_size, void (*del) (void *e
     .key_size = key_size,
   };
 
-  avl_tree_remove_with(bucket, &entry, map_simple_entry_cmp, del);
+  avl_tree_remove(bucket, &entry);
 }
 
 // Get keys in map
 list *map_keys(const hashmap *m) {
-  list *l = list_new();
+  // Set stack del as delete because we never actually want to call free on these elements
+  // They could still be in the map and that would be bad
+  list *l = list_new(map_simple_entry_cmp, return_elem, stack_del);
   list *pairs = map_pairs(m);
   for (list_node *n = pairs->head->next; n != pairs->tail; n = n->next)
     list_push_back(l, ((hashmap_entry *)n->e)->key);
+  list_del(pairs);
   return l;
 }
 
 // Get values in map
 list *map_values(const hashmap *m) {
-  list *l = list_new();
+  list *l = list_new(map_simple_entry_cmp, return_elem, stack_del);
   list *pairs = map_pairs(m);
   for (list_node *n = pairs->head->next; n != pairs->tail; n = n->next)
     list_push_back(l, ((hashmap_entry *)n->e)->value);
@@ -179,6 +175,9 @@ void map_print(const hashmap *m, char *key_format, char *value_format) {
     printf(format, ((hashmap_entry *)n->e)->key, ((hashmap_entry *)n->e)->value);
   }
   printf("}");
+  // Reset deletion on list so we don't accidentally free the data
+  l->del = stack_del;
+  list_del(l);
 }
 
 // Print keys of a hashmap
@@ -199,6 +198,9 @@ void map_keys_print(const hashmap *m, char *format) {
       printf(format, ((hashmap_entry *) n->e)->key);
   }
   printf("]");
+  // Reset deletion on list so we don't accidentally free the data
+  l->del = stack_del;
+  list_del(l);
 }
 // Print values of a hashmap
 void map_values_print(const hashmap *m, char *format) {
@@ -218,4 +220,7 @@ void map_values_print(const hashmap *m, char *format) {
       printf(format, ((hashmap_entry *) n->e)->value);
   }
   printf("]");
+  // Reset deletion on list so we don't accidentally free the data
+  l->del = stack_del;
+  list_del(l);
 }

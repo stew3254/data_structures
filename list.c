@@ -4,13 +4,20 @@
 #include "list.h"
 
 // Initialize a new empty list
-list *list_new() {
+list *list_new(
+  int (*cmp) (const void *a, const void *b),
+  void *(*copy) (const void *e),
+  void (*del) (void *e)
+) {
   list *l = (list *) malloc(sizeof(list));
   // Get 2 different pointers for checking later
   l->head = list_new_node(NULL);
   l->tail = list_new_node(NULL);
   // Remember to initialize length
   l->len = 0;
+  l->cmp = cmp;
+  l->copy = copy;
+  l->del = del;
 
   // Set head to face tail and vice versa
   l->head->next = l->head->prev = l->tail;
@@ -19,7 +26,7 @@ list *list_new() {
 }
 
 // Delete an existing list
-void list_del(list *l, void (*del) (void *e)) {
+void list_del(list *l) {
   // Save the start pointer
   list_node *start = l->head;
   list_node *n = l->head;
@@ -29,7 +36,7 @@ void list_del(list *l, void (*del) (void *e)) {
     temp_n = n->next;
     // Remove the element if it's on the heap
     if (n->e != NULL)
-      del(n->e);
+      l->del(n->e);
 
     // Delete n
     free(n);
@@ -132,7 +139,7 @@ list *list_rev(list *l) {
 
 // Does a deep copy of elements into a new list. Allows you to specify how to deep copy
 list *list_copy_with(const list *l, void *(copy)(const void *e)) {
-  list *new_l = list_new();
+  list *new_l = list_new(l->cmp, l->copy, l->del);
   for (list_node *n = l->head->next; n != l->tail; n = n->next) {
     list_push_back(new_l, copy(n->e));
   }
@@ -195,11 +202,11 @@ list *list_concat_consume_with(
 
   // If either list is empty, no need to concatenate. Just give it the other one
   if (l1->len == 0) {
-    list_del(l1, del);
+    list_del(l1);
     return l2;
   }
   if (l2->len == 0) {
-    list_del(l2, del);
+    list_del(l2);
     return l1;
   }
 
