@@ -8,10 +8,10 @@
 static inline void *return_elem(void *e) { return e; }
 
 // "Delete" an element allocated on the stack (really just do nothing)
-static inline void stack_del(void *e) {}
+static inline void do_not_del(void *e) {}
 
 // "Delete" a primitive type allocated on the heap
-static inline void heap_del(void *e) { free(e); }
+static inline void free_del(void *e) { free(e); }
 
 // Simple comparison function
 static inline int simple_cmp(const void *a, const void *b) {

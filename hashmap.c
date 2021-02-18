@@ -128,7 +128,7 @@ void map_remove_with(hashmap *m, void **k, unsigned int key_size, void (*del) (v
 list *map_keys(const hashmap *m) {
   // Set stack del as delete because we never actually want to call free on these elements
   // They could still be in the map and that would be bad
-  list *l = list_new(map_simple_entry_cmp, return_elem, stack_del);
+  list *l = list_new(map_simple_entry_cmp, return_elem, do_not_del);
   list *pairs = map_pairs(m);
   for (list_node *n = pairs->head->next; n != pairs->tail; n = n->next)
     list_push_back(l, ((hashmap_entry *)n->e)->key);
@@ -138,7 +138,7 @@ list *map_keys(const hashmap *m) {
 
 // Get values in map
 list *map_values(const hashmap *m) {
-  list *l = list_new(map_simple_entry_cmp, return_elem, stack_del);
+  list *l = list_new(map_simple_entry_cmp, return_elem, do_not_del);
   list *pairs = map_pairs(m);
   for (list_node *n = pairs->head->next; n != pairs->tail; n = n->next)
     list_push_back(l, ((hashmap_entry *)n->e)->value);
@@ -175,7 +175,7 @@ void map_print(const hashmap *m, char *key_format, char *value_format) {
   }
   printf("}");
   // Reset deletion on list so we don't accidentally free the data
-  l->del = stack_del;
+  l->del = do_not_del;
   list_del(l);
 }
 
@@ -198,7 +198,7 @@ void map_keys_print(const hashmap *m, char *format) {
   }
   printf("]");
   // Reset deletion on list so we don't accidentally free the data
-  l->del = stack_del;
+  l->del = do_not_del;
   list_del(l);
 }
 // Print values of a hashmap
@@ -220,6 +220,6 @@ void map_values_print(const hashmap *m, char *format) {
   }
   printf("]");
   // Reset deletion on list so we don't accidentally free the data
-  l->del = stack_del;
+  l->del = do_not_del;
   list_del(l);
 }

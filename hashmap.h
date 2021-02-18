@@ -93,9 +93,9 @@ void map_remove(hashmap *m, void **k, unsigned int key_size, unsigned int key_le
 static inline list *map_pairs(const hashmap *m) {
   list *l = avl_tree_to_list(m->buckets[0]);
   for (unsigned int i = 1; i < m->bucket_size; ++i)
-    l = list_concat_consume(l, avl_tree_to_list(m->buckets[i]), stack_del);
+    l = list_concat_consume(l, avl_tree_to_list(m->buckets[i]), do_not_del);
   // Reset deletion on list so we don't accidentally free the data
-  l->del = stack_del;
+  l->del = do_not_del;
   return l;
 }
 // Get keys in map
