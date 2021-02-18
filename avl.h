@@ -117,6 +117,25 @@ static inline search_result avl_tree_get(avl_tree *t, const void *e) {
   return avl_tree_get_from(t, t->root, e);
 }
 
+// Converts the tree into a sorted list from a certain point in the tree
+void avl_tree_to_list_from(const avl_tree *t, avl_tree_node *n, list *l, bool forward);
+// Converts the tree into a sorted list
+static inline list *avl_tree_to_list(const avl_tree *t) {
+  list *l = list_new(t->cmp, t->copy, t->del);
+  // Make sure we don't accidentally dereference a null pointer
+  if (t->root != NULL)
+    avl_tree_to_list_from(t, t->root, l, true);
+  return l;
+}
+// Converts the tree into a reverse sorted list
+static inline list *avl_tree_to_list_rev(const avl_tree *t) {
+  list *l = list_new(t->cmp, t->copy, t->del);
+  // Make sure we don't accidentally dereference a null pointer
+  if (t->root != NULL)
+    avl_tree_to_list_from(t, t->root, l, false);
+  return l;
+}
+
 // A utility function to print preorder traversal of the avl_tree.
 // The function also prints height of every node
 void avl_tree_printr(avl_tree_node *node, unsigned int offset, char *format);
@@ -128,17 +147,6 @@ static inline void avl_tree_println(avl_tree *t, char *format) {
   // Print 4 spaces between nodes
   avl_tree_printr(t->root, t->height*4, format);
   printf("\n");
-}
-
-// Converts the tree into a sorted list from a certain point in the tree
-void avl_tree_to_list_from(const avl_tree *t, avl_tree_node *n, list *l);
-// Converts the tree into a sorted list
-static inline list *avl_tree_to_list(const avl_tree *t) {
-  list *l = list_new(t->cmp, t->copy, t->del);
-  // Make sure we don't accidentally dereference a null pointer
-  if (t->root != NULL)
-    avl_tree_to_list_from(t, t->root, l);
-  return l;
 }
 
 #endif

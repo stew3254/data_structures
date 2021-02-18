@@ -6,16 +6,19 @@
 
 // Simple binary tree
 typedef struct TreeNode {
-  struct TreeNode *left;
-  struct TreeNode *right;
-  void *e;
+    struct TreeNode *left;
+    struct TreeNode *right;
+    void *e;
 } tree_node;
 
 typedef struct Tree {
-  tree_node *root;
-  unsigned int len;
+    tree_node *root;
+    unsigned int len;
+    void *(*copy) (const void *e);
+    void (*del) (void *e);
 } tree;
 
+// Create a new node for the tree
 static inline tree_node *tree_new_node(void* e) {
   tree_node *n = (tree_node*) malloc(sizeof(tree_node));
   n->left = n->right = NULL;
@@ -23,32 +26,52 @@ static inline tree_node *tree_new_node(void* e) {
   return n;
 }
 
-static inline tree *tree_new() {
-  tree *t = (tree*) malloc(sizeof(tree));
-  t->root = tree_new_node(NULL);
-  t->len = 0;
-  return t;
-}
-
+// Construct a new tree
+tree *tree_new(void *(*copy) (const void *e), void (*del) (void *e));
 
 /* Destroy a tree and all elements inside */
 // Used to free nodes in a tree
-void tree_free_subnodes(tree_node *n, void (*del) (void *e));
+void tree_free_subnodes(tree *t, tree_node *n);
 // Not exactly meant to be called directly, main logic behind destroying the tree
-static inline void tree_del(tree *t, void (*del) (void *e)) {
+static inline void tree_del(tree *t) {
   // Set initial starting node
-  tree_free_subnodes(t->root, del);
+  tree_free_subnodes(t, t->root);
   // Walk down the left side
   free(t);
 }
-// Will not remove items that are stack allocated
-static inline void tree_del_stack(tree *t) { tree_del(t, stack_del); }
-// Will free elements before removing the nodes and vec
-static inline void tree_del_heap(tree *t) { tree_del(t, heap_del); }
 
 // Check to see if the node is a leaf
-static inline bool tree_is_leaf(tree_node *n) { return (n->left == NULL && n->right == NULL); }
-// Check to see if the avl_tree_is_empty
-static inline bool avl_tree_is_empty(tree *t) { return t->root == NULL; }
+static inline bool tree_is_leaf(tree_node *n) {
+  return (n->left == NULL && n->right == NULL);
+}
+
+// Get height of the tree from the current position
+unsigned int tree_height_from(tree *t, tree_node *n);
+// Get height of the tree
+static inline unsigned int tree_height(tree *t) {
+  return tree_height_from(t, t->root);
+}
+
+// Clone a tree from a certain node
+tree_node *tree_copy_from(tree *t, tree_node *n);
+// Clone a tree
+static inline tree *tree_copy(tree *t) {
+  tree *new_t = tree_new(t->copy, t->del);
+  new_t->root = tree_copy_from(t, t->root);
+  new_t->len = t->len;
+  return new_t;
+}
+
+// A utility function to print preorder traversal of the avl_tree.
+void tree_printr(tree_node *node, char *format);
+static inline void tree_print(tree *t, char *format) {
+  // Print 4 spaces between nodes
+  tree_printr(t->root, format);
+}
+static inline void tree_println(tree *t, char *format) {
+  // Print 4 spaces between nodes
+  tree_printr(t->root, format);
+  printf("\n");
+}
 
 #endif

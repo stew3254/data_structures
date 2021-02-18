@@ -292,13 +292,24 @@ void avl_tree_printr(avl_tree_node *node, unsigned int offset, char *format) {
 }
 
 // Converts the tree into a sorted list
-void avl_tree_to_list_from(const avl_tree *t, avl_tree_node *n, list *l) {
-  // Descend left subtree
-  if (n->left != NULL)
-    avl_tree_to_list_from(t, n->left, l);
-  // Add the current element
-  list_push_back(l, n->e);
-  // Descend right subtree
-  if (n->right != NULL)
-    avl_tree_to_list_from(t, n->right, l);
+void avl_tree_to_list_from(const avl_tree *t, avl_tree_node *n, list *l, bool forward) {
+  if (forward) {
+    // Descend left subtree
+    if (n->left != NULL)
+      avl_tree_to_list_from(t, n->left, l, forward);
+    // Add the current element
+    list_push_back(l, n->e);
+    // Descend right subtree
+    if (n->right != NULL)
+      avl_tree_to_list_from(t, n->right, l, forward);
+  } else {
+    // Descend right subtree
+    if (n->right != NULL)
+      avl_tree_to_list_from(t, n->right, l, forward);
+    // Add the current element
+    list_push_back(l, n->e);
+    // Descend left subtree
+    if (n->left != NULL)
+      avl_tree_to_list_from(t, n->left, l, forward);
+  }
 }
