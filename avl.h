@@ -136,6 +136,16 @@ static inline list *avl_tree_to_list_rev(const avl_tree *t) {
   return l;
 }
 
+// Copy a tree from a certain point
+avl_tree_node *avl_tree_copy_from(avl_tree *t, avl_tree_node *n);
+// Copy a tree
+static inline avl_tree *avl_tree_copy(avl_tree *t) {
+  avl_tree *new_t = avl_tree_new(t->cmp, t->copy, t->del);
+  new_t->root = avl_tree_copy_from(t, t->root);
+  new_t->len = t->len;
+  return new_t;
+}
+
 // A utility function to print preorder traversal of the avl_tree.
 // The function also prints height of every node
 void avl_tree_printr(avl_tree_node *node, unsigned int offset, char *format);

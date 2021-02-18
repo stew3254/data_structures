@@ -46,17 +46,19 @@ int map_simple_entry_cmp(const void *a, const void *b) {
 hashmap *map_with_hash(
     size_t size,
     unsigned long (*hash) (const void* k, size_t n),
+    void *(*copy) (const void *e),
     void (*del) (void *e)
 ) {
   hashmap *m = (hashmap *) malloc(sizeof(hashmap));
   m->hash = hash;
+  m->copy = copy;
   m->del = del;
   m->bucket_size = size;
   m->len = 0;
   m->buckets = malloc(sizeof(avl_tree)*(size+1));
   // Initialize all of the trees
   for (size_t i = 0; i < size; ++i) {
-    m->buckets[i] = avl_tree_new(map_simple_entry_cmp, return_elem, del);
+    m->buckets[i] = avl_tree_new(map_simple_entry_cmp, copy, del);
   }
   // Set last bucket to NULL just in case
   m->buckets[size] = NULL;
@@ -143,6 +145,27 @@ list *map_values(const hashmap *m) {
   for (list_node *n = pairs->head->next; n != pairs->tail; n = n->next)
     list_push_back(l, ((hashmap_entry *)n->e)->value);
   return l;
+}
+
+// Copy a map
+hashmap *map_copy(const hashmap *m) {
+  hashmap *new_m = malloc(sizeof(hashmap));
+  new_m->hash = m->hash;
+  new_m->copy = m->copy;
+  new_m->del = m->del;
+  new_m->bucket_size = m->bucket_size;
+  new_m->buckets = malloc(sizeof(avl_tree *) * (m->bucket_size + 1));
+
+  // Copy the trees
+  for (unsigned int i = 0; i < m->bucket_size; ++i) {
+    new_m->buckets[i] = avl_tree_copy(m->buckets[i]);
+  }
+
+  // Set the last one null just in case
+  new_m->buckets[m->bucket_size] = NULL;
+  new_m->len = m->len;
+
+  return new_m;
 }
 
 // Print a hashmap (Not exactly the most efficient but only to be used for debugging)

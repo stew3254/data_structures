@@ -9,7 +9,8 @@ typedef struct HashMap {
     avl_tree **buckets;
     unsigned int bucket_size;
     unsigned long (*hash) (const void* k, size_t n);
-    void (*del) (void* e);
+    void *(*copy) (const void *e);
+    void (*del) (void *e);
     unsigned int len;
 } hashmap;
 
@@ -27,6 +28,15 @@ unsigned long hashpjw(const void *k, size_t n);
 // Comparison function for hashmap entries
 // Needed in key searching / sorting in the tree
 int map_simple_entry_cmp(const void *a, const void *b);
+// Simple entry copy
+static inline void* map_simple_entry_copy(const void *e) {
+  hashmap_entry *new_e = malloc(sizeof(hashmap_entry));
+  new_e->key = ((hashmap_entry *) e)->key;
+  new_e->key_size = ((hashmap_entry *) e)->key_size;
+  new_e->key_len = ((hashmap_entry *) e)->key_len;
+  new_e->value = ((hashmap_entry *) e)->value;
+  return new_e;
+}
 // Simple entry removal
 static inline void map_simple_entry_remove(void *e) {
   // Free the key and value
@@ -46,17 +56,22 @@ static inline void map_value_preserve_entry_remove(void *e) {
 hashmap *map_with_hash(
     size_t size,
     unsigned long (*hash) (const void* k, size_t n),
+    void *(*copy) (const void *e),
     void (*del) (void *e)
 );
 
 // Hashmap with the standard hash function, but different size
-static inline hashmap *map_with_size(size_t size, void (*del) (void *e)) {
-  return map_with_hash(size, hashpjw, del);
+static inline hashmap *map_with_size(
+    size_t size,
+    void *(*copy) (const void *e),
+    void (*del) (void *e)
+) {
+  return map_with_hash(size, hashpjw, copy, del);
 }
 
 // Create a new hashmap
-static inline hashmap *map_new(void (*del) (void *e)) {
-  return map_with_size(211, del);
+static inline hashmap *map_new(void *(*copy) (const void *e), void (*del) (void *e)) {
+  return map_with_size(211, copy, del);
 }
 
 // Delete a hashmap
@@ -102,6 +117,9 @@ static inline list *map_pairs(const hashmap *m) {
 list *map_keys(const hashmap *m);
 // Get values in map
 list *map_values(const hashmap *m);
+
+// Copy a map
+hashmap *map_copy(const hashmap *m);
 
 /* Printing utilities */
 // Print a hashmap

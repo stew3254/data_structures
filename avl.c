@@ -281,16 +281,6 @@ search_result avl_tree_get_from(avl_tree *t, avl_tree_node *n, const void *e) {
   }
 }
 
-// A utility function to print preorder traversal of the avl_tree.
-// The function also prints height of every node
-void avl_tree_printr(avl_tree_node *node, unsigned int offset, char *format) {
-  if(node != NULL) {
-    printf(format, node->e);
-    avl_tree_printr(node->left, offset - 4, format);
-    avl_tree_printr(node->right, offset - 4, format);
-  }
-}
-
 // Converts the tree into a sorted list
 void avl_tree_to_list_from(const avl_tree *t, avl_tree_node *n, list *l, bool forward) {
   if (forward) {
@@ -311,5 +301,25 @@ void avl_tree_to_list_from(const avl_tree *t, avl_tree_node *n, list *l, bool fo
     // Descend left subtree
     if (n->left != NULL)
       avl_tree_to_list_from(t, n->left, l, forward);
+  }
+}
+
+// Copy a tree from a certain point
+avl_tree_node *avl_tree_copy_from(avl_tree *t, avl_tree_node *n) {
+  if (n == NULL)
+    return n;
+  avl_tree_node *new_n = avl_tree_new_node(t->copy(n->e));
+  new_n->left = avl_tree_copy_from(t, n->left);
+  new_n->right = avl_tree_copy_from(t, n->right);
+  return new_n;
+}
+
+// A utility function to print preorder traversal of the avl_tree.
+// The function also prints height of every node
+void avl_tree_printr(avl_tree_node *node, unsigned int offset, char *format) {
+  if(node != NULL) {
+    printf(format, node->e);
+    avl_tree_printr(node->left, offset - 4, format);
+    avl_tree_printr(node->right, offset - 4, format);
   }
 }
