@@ -64,18 +64,18 @@ static inline list_node *list_find(const list *l, const void *e) {
 
 /* Insert into list after specific node pointer */
 // Most efficient way to tree_insert_from new items
-void list_insert(list *l, list_node *item, void *e);
+list_node *list_insert(list *l, list_node *item, void *e);
 // Insert into list at certain position, not very efficient
-static inline void list_insert_at(list *l, unsigned int i, void *e) {
-  list_insert(l, list_get_at(l, i), e);
+static inline list_node *list_insert_at(list *l, unsigned int i, void *e) {
+  return list_insert(l, list_get_at(l, i), e);
 }
 // Add something to the beginning of the list
-static inline void list_push_front(list *l, void *e) {
-  list_insert(l, l->head, e);
+static inline list_node *list_push_front(list *l, void *e) {
+  return list_insert(l, l->head, e);
 }
 // Add something to the end of the list
-static inline void list_push_back(list *l, void *e) {
-  list_insert(l, l->tail, e);
+static inline list_node *list_push_back(list *l, void *e) {
+  return list_insert(l, l->tail, e);
 }
 
 /* Pop from the list and retrieve the element inside */

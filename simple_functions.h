@@ -13,11 +13,6 @@ static inline void *return_elem(const void *e) {
 // (or used to just do nothing like when using the hashmaps)
 static inline void do_not_del(void *e) {}
 
-// "Delete" a primitive type allocated on the heap
-static inline void free_del(void *e) {
-  free(e);
-}
-
 // Simple comparison function
 static inline int simple_cmp(const void *a, const void *b) {
   if (a > b)

@@ -90,7 +90,7 @@ list_node *list_find_with(const list *l, const void *e, int (*cmp)(const void *a
 }
 
 // Insert element after item
-void list_insert(list *l, list_node *item, void *e) {
+list_node *list_insert(list *l, list_node *item, void *e) {
   list_node *new_node = list_new_node(e);
 
   // Shift the pointer so it points to the element before the fake tail
@@ -106,6 +106,7 @@ void list_insert(list *l, list_node *item, void *e) {
 
   // Bump up len
   ++l->len;
+  return new_node;
 }
 
 // Pop item
