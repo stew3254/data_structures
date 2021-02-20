@@ -80,6 +80,22 @@ static inline tree *tree_copy(tree *t) {
   return new_t;
 }
 
+// Build a subtree
+static inline tree_node *tree_make_from(void *e, tree_node *left, tree_node *right) {
+  tree_node *n = tree_new_node(e);
+  n->left = left;
+  n->right = right;
+  return n;
+}
+
+// Clone a tree
+static inline tree *tree_copy(tree *t) {
+  tree *new_t = tree_new(t->copy, t->del);
+  new_t->root = tree_copy_from(t, t->root);
+  new_t->len = t->len;
+  return new_t;
+}
+
 // A utility function to print preorder traversal of the avl_tree.
 void tree_printr(tree_node *node, char *format);
 static inline void tree_print(tree *t, char *format) {
