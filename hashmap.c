@@ -94,9 +94,16 @@ int map_get(hashmap *m, void **k, unsigned int key_size, unsigned int key_len, v
   unsigned int index = hashpjw(k, key_size) % m->bucket_size;
   avl_tree *bucket = m->buckets[index];
 
+  // Wipe high bytes in key when size is less than 8
+  // This is fine if 8 - key_size comes out to be 0
+  ptrdiff_t key = *k;
+  long shift = 8 - key_size;
+  if (shift > 0)
+    key = (key << shift*8) >> shift*8;
+
   // Make entry to search with
   hashmap_entry entry = {
-      .key = *k,
+      .key = key,
       .key_size = key_size,
       .key_len = key_len,
   };
