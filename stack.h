@@ -46,7 +46,7 @@ static inline void *stack_pop(stack *s) {
 }
 
 // Copy the stack
-static inline stack *stack_copy(stack *s) {
+static inline stack *stack_copy(const stack *s) {
   stack *new_s = malloc(sizeof(stack));
   new_s->data = list_copy(s->data);
   new_s->copy = s->copy;
