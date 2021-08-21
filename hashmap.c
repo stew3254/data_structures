@@ -9,7 +9,7 @@ unsigned long hashpjw(const void *k, size_t n) {
   unsigned long  h = 0;
 
   for (size_t i = 0; i < n; ++i) {
-    // Casting to a char pointer so I can only index a single byte at once
+    // Casting to a char pointer, so I can only index a single byte at once
     h = (unsigned long) ((h << 4) + ((char *) *((char *) k) + i));
     if ((high = h & 0xF0000000) > 0)
       h ^= high >> 24;

@@ -60,33 +60,27 @@ static inline unsigned int table_stack_len(table_stack *s) {
 // Insert into the local-most scope of the stack
 static inline void table_stack_insert(
     table_stack *s,
-    void **k,
-    unsigned int key_size,
-    unsigned int key_len,
-    void *v
+    char *id,
+    symbol *sym
 ) {
-  return map_insert((hashmap *) s->data->head->next->e, k, key_size, key_len, v);
+  return map_insert((hashmap *) s->data->head->next->e, id, sizeof(char), strlen(id), sym);
 }
 
 // Get the element from the first place in the stack if it exists at all
 // Returns -1 if it's not there at all
 int table_stack_get(
     table_stack *s,
-    void **key,
-    unsigned int key_size,
-    unsigned int key_len,
-    symbol** sym
+    char *id,
+    symbol** sym_p
 );
 
 // Get the top element off of the table_stack if it exists
 static inline int table_stack_get_local(
     table_stack *s,
-    void **key,
-    unsigned int key_size,
-    unsigned int key_len,
-    symbol** sym
+    char *id,
+    symbol** sym_p
 ) {
-  return map_get(s->data->head->next->e, key, key_size, key_len, (void **) sym);
+  return map_get(s->data->head->next->e, id, sizeof(char), strlen(id), (void **) sym_p);
 }
 
 // Add a new empty scope onto the stack
