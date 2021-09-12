@@ -68,7 +68,7 @@ hashmap *map_with_hash(
 // Insert into the map
 // The key must be a pointer to the thing you actually want to use
 void map_insert(hashmap *m, void **k, unsigned int key_size, unsigned int key_len, void *v) {
-  unsigned int index = hashpjw(k, key_size) % m->bucket_size;
+  unsigned int index = hashpjw(k, key_size*key_len) % m->bucket_size;
   avl_tree *bucket = m->buckets[index];
   // Get length of bucket
   unsigned int len = bucket->len;
@@ -184,6 +184,28 @@ hashmap *map_copy(const hashmap *m) {
   new_m->len = m->len;
 
   return new_m;
+}
+
+// Print a hashmap with given function
+void map_print_with(const hashmap *m, void (p)(hashmap_entry *e)) {
+  list *l = avl_tree_to_list(m->buckets[0]);
+  for (unsigned int i = 1; i < m->bucket_size; ++i)
+    l = list_concat_consume(l, avl_tree_to_list(m->buckets[i]), return_elem);
+  if (m->len > 0)
+    printf("{\n");
+  else
+    printf("{");
+  for (list_node *n = l->head->next; n != l->tail; n = n->next) {
+    p(((hashmap_entry*)n->e));
+    if (n->next != l->tail) {
+      printf(",");
+    }
+    printf("\n");
+  }
+  printf("}");
+  // Reset deletion on list so we don't accidentally free the data
+  l->del = do_not_del;
+  list_del(l);
 }
 
 // Print a hashmap (Not exactly the most efficient but only to be used for debugging)

@@ -26,6 +26,13 @@ static inline symbol *symbol_new(const int type) {
   return new_s;
 }
 
+static inline symbol *symbol_with(const int type, void *e) {
+  symbol *new_s = (symbol *) malloc(sizeof(symbol));
+  new_s->type = type;
+  new_s->attribute.sval = e;
+  return new_s;
+}
+
 // TODO fix this when you can tell it's a string for proper string copy
 static inline void *symbol_copy(const void *e) {
   symbol *s = (symbol*) e;
@@ -63,7 +70,7 @@ static inline void table_stack_insert(
     char *id,
     symbol *sym
 ) {
-  return map_insert((hashmap *) s->data->head->next->e, id, sizeof(char), strlen(id), sym);
+  return map_insert((hashmap *) s->data->head->next->e, &id, sizeof(char*), 1, sym);
 }
 
 // Get the element from the first place in the stack if it exists at all
